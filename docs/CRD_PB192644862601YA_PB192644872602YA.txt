@@ -1,0 +1,186 @@
+View Change Request (CRD)
+×
+PB/PMD Information
+PB/PMD Code
+PB192644872602YA
+PB/PMD Name
+BADAN URUSAN ADMINISTRASI MAHKAMAH AGUNG - Website - Update Dashboard
+Requestor
+Name
+BADAN URUSAN ADMINISTRASI MAHKAMAH AGUNG - Website - Update Dashboard
+CR Target
+Application
+CR Description
+Update dashboard mahkamah agung
+CR Reason
+mengambil dari tabel sumary untuk data dashboard, supaya load nya lebih cepat
+Implementation & Product
+CR Type
+Update/Modification
+Product
+Jatis
+App Version
+v1.0.0
+DB Version
+MySQL
+Deploy Location
+Server ID: 2148
+Rollback
+No
+Git Release URL
+-
+Procedures
+Pre-Implementation
+https://git-rbi.jatismobile.com/custom-landing-page/frontend	https://sonarqube.jatismobile.com/dashboard?id=custom-landing-page_frontend
+https://git-rbi.jatismobile.com/custom-landing-page/backend	https://sonarqube.jatismobile.com/dashboard?id=custom-landing-page_backend
+
+perubahan value di config, app.historyWindowMonths: 12 dan
+Implementation
+- Ubah config.yaml backend:
+set app.historyWindowMonths: 12.
+- Update dokumen Mongo clients (clientKey mahkamah-agung): set historyWindowMonths: 12. Langkah ini perlu jika dokumen masih menyimpan nilai lama, misalnya 3.
+- Deploy image backend dan frontend versi baru.
+- restart service
+Post-Implementation
+1. Login ke dashboard dan buka tab Insight. Pastikan judul “Last 12 Months” dan grafik menampilkan 12 bulan.
+2. Buka Token Stats. Pastikan dropdown bulan berisi 12 bulan dan pilih beberapa bulan.
+Success Criteria
+- Backend start normal dan endpoint insight serta token-stats merespons 200.
+- Dashboard menampilkan 12 bulan terakhir dengan angka sesuai tabel summary.
+- Waktu load dashboard lebih cepat dibanding versi sebelumnya.
+- Tidak ada error di log 
+Rollback Procedure
+-
+Mitigation Plan
+-
+Attachments
+No attachments.
+
+Created By
+fariz.hanggara
+Created At
+17 Nov 2026, 13.41
+
+
+
+
+View Change Request (CRD)
+×
+PB/PMD Information
+PB/PMD Code
+PB192644862601YA
+PB/PMD Name
+BADAN URUSAN ADMINISTRASI MAHKAMAH AGUNG - Website - Update Scheduler Query
+Requestor
+Name
+BADAN URUSAN ADMINISTRASI MAHKAMAH AGUNG - Website - Update Scheduler Query
+CR Target
+Application
+CR Description
+BADAN URUSAN ADMINISTRASI MAHKAMAH AGUNG - Website - Update Scheduler Query
+CR Reason
+add summary table for better SQL query performances
+Implementation & Product
+CR Type
+Update/Modification
+Product
+Client
+App Version
+1.0
+DB Version
+16
+Deploy Location
+Server ID: 2148
+Rollback
+No
+Git Release URL
+-
+Procedures
+Pre-Implementation
+GIT: https://git-rbi.jatismobile.com/custom-landing-page/scheduler-wai-transaction/-/tree/feat/add-summary-table
+
+Sonarqube: https://sonarqube.jatismobile.com/dashboard?id=custom-landing-page-scheduler-wai-transaction
+
+update config:
+app:
+  env: production
+
+scheduler:
+  summaryEnabled: true
+  summaryTimeout: 60m
+Implementation
+buat 4 tabel baru di db target. bisa pakai query di bawah atau ada di sql/02_create_summary_tables.sql
+
+--- query ----
+CREATE TABLE IF NOT EXISTS token_summary_daily (
+    account_number          VARCHAR(20)       NOT NULL,
+    summary_date            DATE              NOT NULL,
+    usage_amount            DECIMAL(30,6)     NOT NULL DEFAULT 0,
+    topup_amount            DECIMAL(30,6)     NOT NULL DEFAULT 0,
+    transaction_count       BIGINT UNSIGNED   NOT NULL DEFAULT 0,
+    usage_transaction_count BIGINT UNSIGNED   NOT NULL DEFAULT 0,
+    topup_transaction_count BIGINT UNSIGNED   NOT NULL DEFAULT 0,
+    last_balance            DECIMAL(30,6)     NULL,
+    last_balance_at         DATETIME          NULL,
+    last_balance_trxid      VARCHAR(64)       NULL,
+    last_transaction_at     DATETIME          NULL,
+    updated_at              DATETIME(6)       NOT NULL,
+    PRIMARY KEY (account_number, summary_date),
+    KEY idx_summary_daily_date (summary_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Monthly bucket: derived from token_summary_daily, never from transactions.
+-- last_balance comes from the latest day that HAS a balance.
+CREATE TABLE IF NOT EXISTS token_summary_monthly (
+    account_number          VARCHAR(20)       NOT NULL,
+    summary_month           DATE              NOT NULL,
+    usage_amount            DECIMAL(30,6)     NOT NULL DEFAULT 0,
+    topup_amount            DECIMAL(30,6)     NOT NULL DEFAULT 0,
+    transaction_count       BIGINT UNSIGNED   NOT NULL DEFAULT 0,
+    usage_transaction_count BIGINT UNSIGNED   NOT NULL DEFAULT 0,
+    topup_transaction_count BIGINT UNSIGNED   NOT NULL DEFAULT 0,
+    last_balance            DECIMAL(30,6)     NULL,
+    last_balance_at         DATETIME          NULL,
+    last_balance_trxid      VARCHAR(64)       NULL,
+    last_transaction_at     DATETIME          NULL,
+    updated_at              DATETIME(6)       NOT NULL,
+    PRIMARY KEY (account_number, summary_month),
+    KEY idx_summary_monthly_month (summary_month)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Current balance per account. Guarded so a backdated row cannot win.
+CREATE TABLE IF NOT EXISTS token_account_snapshot (
+    account_number      VARCHAR(20)   NOT NULL,
+    last_balance        DECIMAL(30,6) NULL,
+    last_transaction_at DATETIME      NULL,
+    last_trxid          VARCHAR(64)   NULL,
+    updated_at          DATETIME(6)   NOT NULL,
+    PRIMARY KEY (account_number)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Processing checkpoint, one row per account job.
+CREATE TABLE IF NOT EXISTS token_summary_checkpoint (
+    job_key         VARCHAR(100) NOT NULL,
+    source_cursor   TEXT         NULL,
+    summary_as_of   DATETIME(6)  NULL,
+    last_success_at DATETIME(6)  NULL,
+    updated_at      DATETIME(6)  NOT NULL,
+    PRIMARY KEY (job_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+--- query ----
+Post-Implementation
+pastikan config di update, dan query di jalankan di db target yang ada di config.
+lalu jalankan serta check logs
+Success Criteria
+summary table ter insert dengan benar
+Rollback Procedure
+rollback to previous version
+Mitigation Plan
+backup db
+Attachments
+No attachments.
+
+Created By
+muhammad.rofikur
+Created At
+17 Nov 2026, 08.41
