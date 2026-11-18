@@ -87,6 +87,11 @@ HUD_AND_SPOTLIGHT_JS = """
                 color: #4ade80;
                 border: 1px solid #22c55e;
             }
+            .hud-status-failed {
+                background: rgba(239, 68, 68, 0.25);
+                color: #f87171;
+                border: 1px solid #ef4444;
+            }
             .hud-dot {
                 width: 7px;
                 height: 7px;
@@ -112,10 +117,14 @@ HUD_AND_SPOTLIGHT_JS = """
                 letter-spacing: 0.5px;
                 flex-shrink: 0;
             }
-            .phase-given { background: #8b5cf6; color: #fff; }
-            .phase-when  { background: #f59e0b; color: #000; }
-            .phase-then  { background: #10b981; color: #fff; }
-            .phase-and   { background: #06b6d4; color: #fff; }
+            .phase-setup    { background: #64748b; color: #fff; }
+            .phase-action   { background: #f59e0b; color: #000; }
+            .phase-verify   { background: #10b981; color: #fff; }
+            .phase-security { background: #ef4444; color: #fff; }
+            .phase-given    { background: #8b5cf6; color: #fff; }
+            .phase-when     { background: #f59e0b; color: #000; }
+            .phase-then     { background: #10b981; color: #fff; }
+            .phase-and      { background: #06b6d4; color: #fff; }
 
             .hud-content {
                 flex-grow: 1;
@@ -170,56 +179,68 @@ HUD_AND_SPOTLIGHT_JS = """
                 gap: 5px;
             }
         `;
-        document.head.appendChild(style);
+        (document.head || document.documentElement).appendChild(style);
     }
 
-    // 2. Inject Elements
-    let hud = document.getElementById('agy-hud-container');
-    if (!hud) {
-        hud = document.createElement('div');
-        hud.id = 'agy-hud-container';
-        hud.innerHTML = `
-            <div class="hud-header">
-                <div class="hud-brand">
-                    <span>🛡️ JNS7 E2E JOURNEY</span>
-                    <span class="hud-testcase" id="hud-tc-id">TC-AF-E2E-001</span>
+    // 2. Inject Elements when body is ready
+    function injectElements() {
+        if (!document.body) return;
+
+        let hud = document.getElementById('agy-hud-container');
+        if (!hud) {
+            hud = document.createElement('div');
+            hud.id = 'agy-hud-container';
+            hud.innerHTML = `
+                <div class="hud-header">
+                    <div class="hud-brand">
+                        <span>🏛️ MAHKAMAH AGUNG TOKEN MONITORING</span>
+                        <span class="hud-testcase" id="hud-tc-id">TC-001</span>
+                    </div>
+                    <div class="hud-status-badge hud-status-running" id="hud-status">
+                        <span class="hud-dot"></span>
+                        <span id="hud-status-text">RUNNING</span>
+                    </div>
                 </div>
-                <div class="hud-status-badge hud-status-running" id="hud-status">
-                    <span class="hud-dot"></span>
-                    <span id="hud-status-text">RUNNING</span>
+                <div class="hud-body">
+                    <span class="hud-phase-pill phase-given" id="hud-phase">GIVEN</span>
+                    <div class="hud-content">
+                        <div class="hud-step-title" id="hud-title">Inisialisasi Test Runner...</div>
+                        <div class="hud-step-detail" id="hud-detail">Menyiapkan Browser & Target SUT</div>
+                    </div>
+                    <div class="hud-step-count" id="hud-count">TC-001</div>
                 </div>
-            </div>
-            <div class="hud-body">
-                <span class="hud-phase-pill phase-given" id="hud-phase">GIVEN</span>
-                <div class="hud-content">
-                    <div class="hud-step-title" id="hud-title">Inisialisasi Test Runner...</div>
-                    <div class="hud-step-detail" id="hud-detail">Menyiapkan Browser & Target SUT</div>
-                </div>
-                <div class="hud-step-count" id="hud-count">Step 1/6</div>
-            </div>
-        `;
-        document.body.appendChild(hud);
+            `;
+            document.body.appendChild(hud);
+        }
+
+        let spotlight = document.getElementById('agy-spotlight-box');
+        if (!spotlight) {
+            spotlight = document.createElement('div');
+            spotlight.id = 'agy-spotlight-box';
+            spotlight.innerHTML = `<div id="agy-spotlight-badge">🎯 TARGET</div>`;
+            document.body.appendChild(spotlight);
+        }
     }
 
-    let spotlight = document.getElementById('agy-spotlight-box');
-    if (!spotlight) {
-        spotlight = document.createElement('div');
-        spotlight.id = 'agy-spotlight-box';
-        spotlight.innerHTML = `<div id="agy-spotlight-badge">🎯 TARGET</div>`;
-        document.body.appendChild(spotlight);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectElements);
+    } else {
+        injectElements();
     }
 })();
 """
 
 UPDATE_HUD_JS = """
-({phase, title, detail, count, status}) => {
+({phase, title, detail, count, status, tcId}) => {
     const hudPhase = document.getElementById('hud-phase');
     const hudTitle = document.getElementById('hud-title');
     const hudDetail = document.getElementById('hud-detail');
     const hudCount = document.getElementById('hud-count');
     const hudStatus = document.getElementById('hud-status');
     const hudStatusText = document.getElementById('hud-status-text');
+    const hudTcId = document.getElementById('hud-tc-id');
 
+    if (hudTcId && tcId) hudTcId.innerText = tcId;
     if (hudPhase && phase) {
         hudPhase.innerText = phase.toUpperCase();
         hudPhase.className = `hud-phase-pill phase-${phase.toLowerCase()}`;
@@ -232,6 +253,9 @@ UPDATE_HUD_JS = """
         if (status.toUpperCase() === 'PASSED') {
             hudStatus.className = 'hud-status-badge hud-status-passed';
             hudStatusText.innerText = 'PASSED';
+        } else if (status.toUpperCase() === 'FAILED') {
+            hudStatus.className = 'hud-status-badge hud-status-failed';
+            hudStatusText.innerText = 'FAILED';
         } else {
             hudStatus.className = 'hud-status-badge hud-status-running';
             hudStatusText.innerText = 'RUNNING';

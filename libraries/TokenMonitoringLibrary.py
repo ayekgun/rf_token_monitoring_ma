@@ -167,6 +167,12 @@ class TokenMonitoringLibrary:
             viewport={"width": 1440, "height": 900},
             ignore_https_errors=True
         )
+        if HUD_AND_SPOTLIGHT_JS:
+            try:
+                self.context.add_init_script(HUD_AND_SPOTLIGHT_JS)
+            except Exception as e:
+                logger.debug(f"Failed to add init script: {e}")
+
         self.page = self.context.new_page()
 
         # Attach network response listener
@@ -236,16 +242,43 @@ class TokenMonitoringLibrary:
     def _update_hud(self, phase: str, title: str, detail: str, status: str = "RUNNING"):
         if self.page and not self.page.is_closed():
             try:
-                self.page.evaluate(UPDATE_HUD_JS, [phase, title, detail, status])
-            except Exception:
-                pass
+                self._inject_hud()
+                self.page.evaluate(UPDATE_HUD_JS, {
+                    "phase": phase,
+                    "title": title,
+                    "detail": detail,
+                    "count": self.current_tc_id,
+                    "status": status,
+                    "tcId": self.current_tc_id
+                })
+                if os.environ.get("HEADED", "0") == "1":
+                    time.sleep(0.3)
+            except Exception as e:
+                logger.debug(f"Failed to update HUD: {e}")
 
     def _highlight(self, selector: str, badge_text: str = ""):
         if self.page and not self.page.is_closed():
             try:
-                self.page.evaluate(HIGHLIGHT_BOX_JS, [selector, badge_text])
-            except Exception:
-                pass
+                self._inject_hud()
+                loc = self.page.locator(selector).first
+                if loc.count() > 0:
+                    try:
+                        loc.scroll_into_view_if_needed(timeout=2000)
+                    except Exception:
+                        pass
+                    box = loc.bounding_box()
+                    if box and box.get("width", 0) > 0 and box.get("height", 0) > 0:
+                        self.page.evaluate(HIGHLIGHT_BOX_JS, {
+                            "box": box,
+                            "badgeText": badge_text
+                        })
+                        if os.environ.get("HEADED", "0") == "1":
+                            time.sleep(0.4)
+                        return
+                self._clear_highlight()
+            except Exception as e:
+                logger.debug(f"Failed to highlight '{selector}': {e}")
+                self._clear_highlight()
 
     def _clear_highlight(self):
         if self.page and not self.page.is_closed():
@@ -302,6 +335,7 @@ class TokenMonitoringLibrary:
     def teardown_test_scenario(self):
         """Teardown setiap testcase: ambil log delta SSH dan simpan evidence."""
         logger.info(f"=== [TEARDOWN TEST] {self.current_tc_id} ===")
+        self._update_hud("TEARDOWN", f"Test Case: {self.current_tc_id}", "Pembersihan & pencatatan log delta", "PASSED")
         self._collect_ssh_log_delta()
         self._clear_highlight()
 
@@ -369,6 +403,7 @@ class TokenMonitoringLibrary:
     @keyword("DB Catat Snapshot Pengguna Awal Pada MongoDB")
     def record_initial_user_snapshot(self):
         """Merekam lastLoginAt dan sessionVersion sebelum login."""
+        self._update_hud("GIVEN", "Audit Snapshot MongoDB", f"Merekam sesi awal {DEFAULT_AUTH_USER}")
         db = self._get_mongo_db()
         user = db["client_users"].find_one({"username": DEFAULT_AUTH_USER})
         if not user:
@@ -382,22 +417,23 @@ class TokenMonitoringLibrary:
         """Membuka halaman login via Playwright dengan cookies bersih."""
         self.context.clear_cookies()
         url = f"{APP_URL}/login"
-        self._update_hud("NAVIGATE", "Buka Halaman Login", f"URL: {url}")
+        self._update_hud("WHEN", "Buka Halaman Login", f"URL: {url}")
         self.page.goto(url, wait_until="networkidle")
         self._inject_hud()
         self.page.wait_for_selector('input[name="usernameOrEmail"]', timeout=10000)
+        self._highlight('.login-card', "Form Login Monitoring")
 
     @keyword("UI Input Kredensial Valid Dan Submit Login")
     def input_valid_credentials_and_login(self):
         """Memasukkan username dan password valid lalu submit form."""
-        self._update_hud("ACTION", "Form Login", f"User: {DEFAULT_AUTH_USER}")
+        self._update_hud("WHEN", "Input Kredensial Valid", f"User: {DEFAULT_AUTH_USER}")
         self._highlight('input[name="usernameOrEmail"]', "Username")
         self.page.fill('input[name="usernameOrEmail"]', DEFAULT_AUTH_USER)
 
         self._highlight('input[name="password"]', "Password")
         self.page.fill('input[name="password"]', DEFAULT_AUTH_PASS)
 
-        self._highlight('button[type="submit"]', "Submit")
+        self._highlight('button[type="submit"]', "Submit Login")
         self.page.click('button[type="submit"]')
 
     @keyword("UI Verifikasi Tampilan Halaman Dashboard Dan Header")
@@ -409,32 +445,38 @@ class TokenMonitoringLibrary:
         # Verifikasi judul utama
         title_el = self.page.wait_for_selector(".dashboard-shell__header h1", timeout=10000)
         title_text = title_el.text_content().strip()
+        self._highlight(".dashboard-shell__header h1", "Dashboard Title")
         if "Dashboard Token Usage" not in title_text:
             raise AssertionError(f"Judul dashboard tidak sesuai! Aktual: '{title_text}', Ekspektasi: 'Dashboard Token Usage'")
 
         # Verifikasi subtitle
         subtitle_el = self.page.wait_for_selector(".dashboard-shell__subtitle", timeout=5000)
         subtitle_text = subtitle_el.text_content().strip()
+        self._highlight(".dashboard-shell__subtitle", "Subtitle Mahkamah Agung")
         if "Mahkamah Agung" not in subtitle_text:
             raise AssertionError(f"Subtitle dashboard tidak sesuai! Aktual: '{subtitle_text}', Ekspektasi: 'Mahkamah Agung'")
 
         # Verifikasi tombol logout aktif
         logout_btn = self.page.wait_for_selector('header.dashboard-shell__header button:has-text("Logout")', timeout=5000)
+        self._highlight('header.dashboard-shell__header button:has-text("Logout")', "Logout Button")
         if not logout_btn.is_visible():
             raise AssertionError("Tombol Logout tidak terlihat di header dashboard!")
 
         # Verifikasi tab Insight is-active
         insight_tab = self.page.wait_for_selector("#dashboard-tab-insight", timeout=5000)
+        self._highlight("#dashboard-tab-insight", "Tab Insight Aktif")
         classes = insight_tab.get_attribute("class") or ""
         if "is-active" not in classes:
             raise AssertionError("Tab Insight tidak dalam status is-active!")
 
-        self._update_hud("VERIFY", "Dashboard Tampil Valid", f"Judul: {title_text} | Subtitle: {subtitle_text}", "PASSED")
+        self._clear_highlight()
+        self._update_hud("THEN", "Dashboard Tampil Valid", f"Judul: {title_text} | Subtitle: {subtitle_text}", "PASSED")
         logger.info("DOM Verification Passed: Dashboard Title, Subtitle, Logout, and Tab Insight active.")
 
     @keyword("UI Verifikasi Atribut Cookie Sesi Keamanan")
     def verify_session_cookies_attributes(self):
         """Memverifikasi cookie map_access_token dan map_refresh_token."""
+        self._update_hud("AND", "Verifikasi Cookie Keamanan", "HttpOnly, Secure path '/', SameSite=Lax")
         cookies = self.context.cookies()
         access_cookie = next((c for c in cookies if c["name"] == "map_access_token"), None)
         refresh_cookie = next((c for c in cookies if c["name"] == "map_refresh_token"), None)
@@ -467,6 +509,7 @@ class TokenMonitoringLibrary:
     @keyword("DB Verifikasi Waktu Login Terakhir Pada MongoDB")
     def verify_mongodb_last_login_updated(self):
         """Memverifikasi field lastLoginAt di MongoDB client_users terbarui."""
+        self._update_hud("AND", "Verifikasi Mutasi MongoDB", "lastLoginAt terbarui secara akurat", "PASSED")
         db = self._get_mongo_db()
         user = db["client_users"].find_one({"username": DEFAULT_AUTH_USER})
         new_last_login = str(user.get("lastLoginAt", ""))
@@ -486,6 +529,7 @@ class TokenMonitoringLibrary:
     @keyword("UI Pastikan Berada Pada Tab Insight Dashboard")
     def ensure_on_insight_tab(self):
         """Memastikan berada di tab Insight."""
+        self._update_hud("GIVEN", "Pastikan Tab Insight Aktif", "Beralih ke tab Insight")
         if self.page and not self.page.is_closed() and "/dashboard" in self.page.url:
             insight_tab = self.page.query_selector("#dashboard-tab-insight")
             if insight_tab:
@@ -497,6 +541,8 @@ class TokenMonitoringLibrary:
                     self.page.reload(wait_until="networkidle")
                 self._inject_hud()
                 self.page.wait_for_load_state("networkidle")
+                self._highlight("#dashboard-tab-insight", "Tab Insight")
+                self._clear_highlight()
                 return
 
         cookies = self.context.cookies() if self.context else []
@@ -515,14 +561,19 @@ class TokenMonitoringLibrary:
             self.page.wait_for_selector("#dashboard-panel-insight", timeout=5000)
         self._inject_hud()
         self.page.wait_for_load_state("networkidle")
+        self._highlight("#dashboard-tab-insight", "Tab Insight")
+        self._clear_highlight()
 
     @keyword("UI Verifikasi Kartu Grafik Insight Dan Batang Bulanan")
     def verify_insight_charts_and_titles(self):
         """Memverifikasi judul grafik dan 12 batang data."""
+        self._update_hud("WHEN", "Verifikasi Grafik 12 Bulan", "Cek judul dan 12 batang bulanan")
         self.page.wait_for_selector("#dashboard-panel-insight .chart-card h3", timeout=10000)
         headers = self.page.query_selector_all("#dashboard-panel-insight .chart-card h3")
         header_texts = [h.text_content().strip() for h in headers]
         logger.info(f"Insight Chart Headers: {header_texts}")
+
+        self._highlight("#dashboard-panel-insight .charts-grid", "Grafik 12 Bulan")
 
         if not any("Token Usage (Last 12 Months)" in t for t in header_texts):
             raise AssertionError(f"Judul grafik Token Usage salah! Ditemukan: {header_texts}")
@@ -553,6 +604,7 @@ class TokenMonitoringLibrary:
         if point_count != 12:
             raise AssertionError(f"Jumlah batang pada grafik usageMonthly bukan 12 melainkan {point_count}!")
 
+        self._clear_highlight()
         logger.info(f"Insight Chart Points Verified: Exactly {point_count} monthly bars: {[p.get('label') for p in usage_points]}")
 
     @keyword("DB Verifikasi Agregasi SQL 12 Bulan Cocok Dengan Metrik UI")
@@ -598,6 +650,12 @@ class TokenMonitoringLibrary:
         expected_topup_str = f"{int(expected_topup_tokens):,}".replace(",", ".")
         expected_bal_str = f"{int(expected_balance_tokens):,}".replace(",", ".")
 
+        self._update_hud("THEN", "Komparasi SQL vs UI 12 Bulan", f"Usage={expected_usage_str}, TopUp={expected_topup_str}, Bal={expected_bal_str}")
+        self._highlight('#dashboard-panel-insight .metric-card:has(.metric-card__label:has-text("Usage"))', f"Usage: {ui_metrics.get('Usage')}")
+        self._highlight('#dashboard-panel-insight .metric-card:has(.metric-card__label:has-text("Top-Up"))', f"Top-Up: {ui_metrics.get('Top-Up')}")
+        self._highlight('#dashboard-panel-insight .metric-card:has(.metric-card__label:has-text("Token Balance"))', f"Balance: {ui_metrics.get('Token Balance')}")
+        self._clear_highlight()
+
         comp_result = {
             "Usage": {"SQL": expected_usage_tokens, "Formatted": expected_usage_str, "UI": ui_metrics.get("Usage")},
             "Top-Up": {"SQL": expected_topup_tokens, "Formatted": expected_topup_str, "UI": ui_metrics.get("Top-Up")},
@@ -627,7 +685,7 @@ class TokenMonitoringLibrary:
         if not self.page or self.page.is_closed() or "/dashboard" not in self.page.url:
             self.ensure_on_insight_tab()
 
-        self._update_hud("ACTION", "Navigasi Tab", "Beralih ke tab Token Stats")
+        self._update_hud("WHEN", "Navigasi Tab", "Beralih ke tab Token Stats")
         self._highlight("#dashboard-tab-token-stats", "Tab Token Stats")
         self.page.click("#dashboard-tab-token-stats")
         self.page.wait_for_selector("#dashboard-token-stats-month", timeout=10000)
@@ -635,12 +693,15 @@ class TokenMonitoringLibrary:
         self.page.wait_for_selector("#dashboard-token-stats-month option[value='2026-11']", state="attached", timeout=10000)
         self.page.wait_for_load_state("networkidle")
         self._inject_hud()
+        self._clear_highlight()
 
     @keyword("UI Verifikasi Opsi Dropdown 12 Bulan Kronologis")
     def verify_token_stats_dropdown_options(self):
         """Memverifikasi dropdown #dashboard-token-stats-month berisi 12 opsi kronologis."""
+        self._update_hud("THEN", "Verifikasi Dropdown 12 Bulan", "12 Opsi Terurut Kronologis 2026-11 s/d 2025-12")
         self.page.wait_for_selector("#dashboard-token-stats-month option[value='2026-11']", state="attached", timeout=10000)
         select_el = self.page.wait_for_selector("#dashboard-token-stats-month", timeout=5000)
+        self._highlight("#dashboard-token-stats-month", "Dropdown 12 Bulan")
         options = select_el.query_selector_all("option")
         option_values = [opt.get_attribute("value") for opt in options if opt.get_attribute("value")]
 
@@ -661,6 +722,7 @@ class TokenMonitoringLibrary:
         current_val = select_el.input_value()
         if current_val != "2026-11":
             raise AssertionError(f"Default terpilih bukan 2026-11 melainkan {current_val}")
+        self._clear_highlight()
 
     @keyword("DB Verifikasi Daftar 12 Bulan Dan Harian November Pada SQL")
     def verify_token_stats_sql_matching(self):
@@ -699,7 +761,11 @@ class TokenMonitoringLibrary:
         expected_nov_usage = round(float(row_daily["nov_usage_idr"]) / TOKEN_FIXED_PRICE, 2)
         expected_nov_str = f"{int(expected_nov_usage):,}".replace(",", ".")
 
+        self._update_hud("AND", "Verifikasi SQL Data November", f"Usage Nov: {expected_nov_str}")
+        self._highlight('#dashboard-panel-token-stats .metric-card:has(.metric-card__label:has-text("Usage"))', f"Nov Usage: {expected_nov_str}")
         usage_val = self.page.query_selector('#dashboard-panel-token-stats .metric-card:has(.metric-card__label:has-text("Usage")) .metric-card__value').text_content().strip()
+        self._clear_highlight()
+
         if usage_val != expected_nov_str:
             raise AssertionError(f"Metrik Usage November UI '{usage_val}' tidak cocok dengan SQL '{expected_nov_str}'!")
 
@@ -715,12 +781,12 @@ class TokenMonitoringLibrary:
     @keyword("UI Pilih Opsi Bulan Oktober Pada Dropdown")
     def select_october_month_in_dropdown(self):
         """Memilih opsi 2026-10 pada dropdown."""
-        self._update_hud("ACTION", "Filter Bulan", "Pilih Oktober 2026 (2026-10)")
+        self._update_hud("WHEN", "Pilih Filter Bulan Oktober 2026", "Memilih opsi 2026-10")
         self.page.wait_for_selector("#dashboard-token-stats-month:not([disabled])", timeout=10000)
         self.page.wait_for_selector("#dashboard-token-stats-month option[value='2026-10']", state="attached", timeout=10000)
         self.page.wait_for_load_state("networkidle")
 
-        self._highlight("#dashboard-token-stats-month", "Select Month")
+        self._highlight("#dashboard-token-stats-month", "Select Month 2026-10")
         with self.page.expect_response(lambda r: "month=2026-10" in r.url and r.status == 200, timeout=10000) as resp_info:
             self.page.select_option("#dashboard-token-stats-month", "2026-10")
 
@@ -738,6 +804,7 @@ class TokenMonitoringLibrary:
     @keyword("UI Verifikasi Permintaan Jaringan AJAX Bulan Oktober")
     def verify_ajax_month_query_parameter(self):
         """Memverifikasi request AJAX membawa parameter month=2026-10."""
+        self._update_hud("THEN", "Verifikasi AJAX Month Query", "GET /token-stats?month=2026-10 (200 OK)")
         matching_req = [
             r for r in self.network_responses
             if "/api/v1/monitoring/token-stats" in r["url"] and "2026-10" in r["url"]
@@ -787,6 +854,13 @@ class TokenMonitoringLibrary:
         exp_topup_str = f"{int(expected_topup):,}".replace(",", ".")
         exp_bal_str = f"{int(expected_balance):,}".replace(",", ".")
 
+        self._update_hud("AND", "Verifikasi Metrik & Harian Oktober", f"Usage={exp_usage_str}, TopUp={exp_topup_str}, Bal={exp_bal_str}")
+        self._highlight('#dashboard-panel-token-stats .metric-card:has(.metric-card__label:has-text("Usage"))', f"Okt Usage: {exp_usage_str}")
+        self._highlight('#dashboard-panel-token-stats .metric-card:has(.metric-card__label:has-text("Top-Up"))', f"Okt Top-Up: {exp_topup_str}")
+        self._highlight('#dashboard-panel-token-stats .metric-card:has(.metric-card__label:has-text("Token Balance"))', f"Okt Balance: {exp_bal_str}")
+        self._highlight("#dashboard-panel-token-stats .canvas-bar-chart__surface", "Grafik 31 Hari Oktober")
+        self._clear_highlight()
+
         metric_cards = self.page.query_selector_all("#dashboard-panel-token-stats .metric-card")
         ui_metrics = {}
         for mc in metric_cards:
@@ -822,6 +896,8 @@ class TokenMonitoringLibrary:
     @keyword("UI Verifikasi Tampilan Teks Data Freshness")
     def verify_data_freshness_format(self):
         """Memverifikasi elemen data-freshness berbunyi 'Data per 18 Nov 2026, 00.00 WIB'."""
+        self._update_hud("WHEN", "Verifikasi Teks Data Freshness", "Format: Data per 18 Nov 2026, 00.00 WIB")
+        self._highlight(".data-freshness", "Data Freshness WIB")
         freshness_el = self.page.wait_for_selector(".data-freshness", timeout=5000)
         freshness_text = freshness_el.text_content().strip()
         logger.info(f"Data Freshness Text: '{freshness_text}'")
@@ -835,10 +911,13 @@ class TokenMonitoringLibrary:
         datetime_attr = time_el.get_attribute("datetime") or ""
         if "2026-11-18T00:00:00+07:00" not in datetime_attr:
             raise AssertionError(f"Atribut datetime salah! Ditemukan: '{datetime_attr}'")
+        self._clear_highlight()
 
     @keyword("DB Verifikasi Kontrak Checkpoint Dan Zona Waktu Asia Jakarta")
     def verify_timezone_contract_in_database_and_api(self):
         """Membaca checkpoint database dan membandingkan dengan metadata API."""
+        self._update_hud("THEN", "Verifikasi Checkpoint Timezone", "DB Asia/Jakarta vs ISO +07:00")
+        self._highlight(".data-freshness time", "ISO +07:00 (WIB)")
         conn = self._get_mysql_conn()
         with conn.cursor() as cur:
             cur.execute("""
@@ -854,6 +933,7 @@ class TokenMonitoringLibrary:
 
         if "2026-11-18 00:00:00" not in raw_as_of:
             raise AssertionError(f"Checkpoint database tidak cocok! Ditemukan: '{raw_as_of}'")
+        self._clear_highlight()
 
         self.register_evidence(
             "TC-005",
@@ -868,33 +948,42 @@ class TokenMonitoringLibrary:
     def submit_login_with_wrong_password(self):
         """Submit login dengan password salah."""
         self.navigate_to_login_page()
-        self._highlight('input[name="usernameOrEmail"]', "Valid User")
+        self._update_hud("WHEN", "Submit Password Salah", "User valid + password salah")
+        self._highlight('input[name="usernameOrEmail"]', "User Valid")
         self.page.fill('input[name="usernameOrEmail"]', DEFAULT_AUTH_USER)
-        self._highlight('input[name="password"]', "Wrong Password")
+        self._highlight('input[name="password"]', "Password Salah")
         self.page.fill('input[name="password"]', "PasswordSalah999!")
+        self._highlight('button[type="submit"]', "Submit")
         self.page.click('button[type="submit"]')
         time.sleep(1)
 
         err_el = self.page.wait_for_selector(".inline-message", timeout=5000)
         err_text = err_el.text_content().strip()
+        self._highlight(".inline-message", "Pesan Error 401")
         expected_msg = "Username, email, atau password tidak valid."
         if expected_msg not in err_text:
             raise AssertionError(f"Pesan error salah! Aktual: '{err_text}', Ekspektasi: '{expected_msg}'")
 
         if self.last_login_status != 401:
             raise AssertionError(f"Status HTTP bukan 401 Unauthorized melainkan {self.last_login_status}")
+        self._clear_highlight()
 
     @keyword("UI Input Kredensial Akun Tidak Terdaftar Dan Verifikasi Penolakan")
     def submit_login_with_unknown_username(self):
         """Submit login dengan username tidak dikenal."""
         self.navigate_to_login_page()
+        self._update_hud("AND", "Submit Akun Tidak Terdaftar", "User unknown + password sembarang")
+        self._highlight('input[name="usernameOrEmail"]', "Unknown User")
         self.page.fill('input[name="usernameOrEmail"]', "unknown.user.ma")
+        self._highlight('input[name="password"]', "Password")
         self.page.fill('input[name="password"]', "SembarangPassword123!")
+        self._highlight('button[type="submit"]', "Submit")
         self.page.click('button[type="submit"]')
         time.sleep(1)
 
         err_el = self.page.wait_for_selector(".inline-message", timeout=5000)
         err_text = err_el.text_content().strip()
+        self._highlight(".inline-message", "Pesan Error Seragam")
         expected_msg = "Username, email, atau password tidak valid."
         if expected_msg not in err_text:
             raise AssertionError(f"Pesan error salah! Aktual: '{err_text}', Ekspektasi: '{expected_msg}'")
@@ -902,6 +991,7 @@ class TokenMonitoringLibrary:
         cookies = self.context.cookies()
         if any(c["name"] == "map_access_token" for c in cookies):
             raise AssertionError("Cookie map_access_token terbentuk padahal login gagal!")
+        self._clear_highlight()
 
         self.register_evidence(
             "TC-006",
@@ -916,12 +1006,16 @@ class TokenMonitoringLibrary:
     def submit_login_with_empty_fields(self):
         """Klik tombol Login saat form kosong."""
         self.navigate_to_login_page()
+        self._update_hud("WHEN", "Submit Form Login Kosong", "Uji validasi HTML5 required klien")
+        self._highlight('input[name="usernameOrEmail"]', "Field Wajib (Required)")
         self.page.fill('input[name="usernameOrEmail"]', "")
         self.page.fill('input[name="password"]', "")
 
         initial_req_count = len(self.network_responses)
+        self._highlight('button[type="submit"]', "Submit (Tertahan)")
         self.page.click('button[type="submit"]')
         time.sleep(0.5)
+        self._clear_highlight()
 
         new_login_requests = [
             r for r in self.network_responses[initial_req_count:]
@@ -933,6 +1027,7 @@ class TokenMonitoringLibrary:
     @keyword("SEC Verifikasi Permintaan Backend Payload Kosong Ditolak 400")
     def test_direct_empty_payload_backend_validation(self):
         """Mengirimkan direct HTTP POST kosong ke /api/v1/auth/login."""
+        self._update_hud("THEN", "Direct API POST Kosong", "BFF menolak POST {} dengan HTTP 400 INVALID_PAYLOAD")
         url = f"{BFF_URL}/api/v1/auth/login"
         req = urllib.request.Request(
             url,
@@ -966,20 +1061,24 @@ class TokenMonitoringLibrary:
         """Buka /dashboard?tab=insight tanpa cookie."""
         self.context.clear_cookies()
         url = f"{APP_URL}/dashboard?tab=insight"
-        self._update_hud("SECURITY", "Direct URL Access", "Akses /dashboard tanpa sesi login")
+        self._update_hud("GIVEN", "Akses Langsung Dashboard Tanpa Sesi", "Direct URL: /dashboard?tab=insight")
         self.page.goto(url, wait_until="networkidle")
 
     @keyword("UI Verifikasi Komponen ProtectedRoute Mengalihkan Ke Login")
     def verify_redirect_to_login(self):
         """Memverifikasi redirect ke /login dan tidak ada kebocoran DOM dashboard."""
+        self._update_hud("WHEN", "Verifikasi Pengalihan ProtectedRoute", "Otomatis redirect ke /login")
         self.page.wait_for_url("**/login*", timeout=10000)
+        self._highlight(".login-card", "Redirect Ke Halaman Login")
         cards = self.page.query_selector_all(".metric-card")
         if len(cards) > 0:
             raise AssertionError("Komponen dashboard bocor ke DOM pada akses tanpa otentikasi!")
+        self._clear_highlight()
 
     @keyword("SEC Verifikasi Seluruh Endpoint Monitoring Backend Ditolak 401")
     def verify_direct_api_endpoints_reject_without_session(self):
         """Mengirimkan direct HTTP GET tanpa cookie ke endpoint monitoring."""
+        self._update_hud("THEN", "Proteksi Endpoint API Monitoring", "Direct API menolak tanpa sesi dengan HTTP 401 UNAUTHORIZED_SESSION")
         endpoints = ["/api/v1/monitoring/insight", "/api/v1/monitoring/token-stats"]
         for ep in endpoints:
             url = f"{BFF_URL}{ep}"
@@ -1007,6 +1106,7 @@ class TokenMonitoringLibrary:
     @keyword("UI Login Dan Ambil Token Sesi Dengan Protokol Masking")
     def login_and_capture_token_before_logout(self):
         """Login dan ambil nilai cookie map_access_token dengan protokol masking."""
+        self._update_hud("GIVEN", "Login & Rekam Sesi Aktif", "Ambil cookie map_access_token")
         self.record_initial_user_snapshot()
         self.navigate_to_login_page()
         self.input_valid_credentials_and_login()
@@ -1018,33 +1118,39 @@ class TokenMonitoringLibrary:
             raise AssertionError("Token map_access_token tidak dapat ditangkap!")
         self.captured_access_token = tok
         masked = f"{tok[:10]}...***"
+        self._highlight(".dashboard-shell__header", "Sesi Dashboard Aktif")
+        self._clear_highlight()
         logger.info(f"Captured Token for Replay Test: {masked} (Raw token strictly masked)")
 
     @keyword("UI Eksekusi Tombol Logout Pada Header Dashboard")
     def click_logout_button(self):
         """Klik tombol Logout pada header dashboard."""
-        self._update_hud("ACTION", "Logout", "Klik tombol Logout di header")
-        self._highlight('header.dashboard-shell__header button:has-text("Logout")', "Logout")
+        self._update_hud("WHEN", "Logout Sesi", "Klik tombol Logout di header")
+        self._highlight('header.dashboard-shell__header button:has-text("Logout")', "Tombol Logout")
         self.page.click('header.dashboard-shell__header button:has-text("Logout")')
         self.page.wait_for_url("**/login*", timeout=10000)
+        self._clear_highlight()
 
     @keyword("UI Verifikasi Pembersihan Cookie Dan Proteksi Browser Back")
     def verify_logout_cleanup_and_browser_back(self):
         """Memverifikasi cookie dibersihkan dan browser back terproteksi."""
+        self._update_hud("THEN", "Verifikasi Cookie & Browser Back Guard", "Cookie hangus & back tertolak")
         cookies = self.context.cookies()
         active_tok = next((c for c in cookies if c["name"] == "map_access_token" and c.get("value")), None)
         if active_tok:
             raise AssertionError("Cookie map_access_token masih memiliki nilai setelah logout!")
 
-        self._update_hud("SECURITY", "Browser Back Test", "Tekan tombol Back pada peramban")
         self.page.go_back(wait_until="networkidle")
         time.sleep(1)
+        self._highlight(".login-card", "Halaman Login (Aman)")
         if "/dashboard" in self.page.url:
             raise AssertionError("Browser Back berhasil membuka dashboard! Proteksi cache header gagal.")
+        self._clear_highlight()
 
     @keyword("SEC Verifikasi Kenaikan Versi Sesi Dan Replay Attack Ditolak 401")
     def verify_session_version_and_replay_attack_rejected(self):
         """Memverifikasi kenaikan sessionVersion dan penolakan replay token lama."""
+        self._update_hud("AND", "Verifikasi Replay Attack Hangus", "MongoDB sessionVersion naik & replay 401")
         db = self._get_mongo_db()
         user = db["client_users"].find_one({"username": DEFAULT_AUTH_USER})
         new_version = int(user.get("sessionVersion", 1))
@@ -1085,6 +1191,7 @@ class TokenMonitoringLibrary:
     @keyword("DB Catat Baseline Koneksi Database Threads Connected")
     def record_baseline_db_connections(self):
         """Merekam jumlah Threads_connected sebelum uji navigasi."""
+        self._update_hud("GIVEN", "Audit Baseline Koneksi Database", "SHOW STATUS LIKE Threads_connected")
         conn = self._get_mysql_conn()
         with conn.cursor() as cur:
             cur.execute("SHOW STATUS LIKE 'Threads_connected'")
@@ -1098,13 +1205,16 @@ class TokenMonitoringLibrary:
         """Melakukan perpindahan tab Insight <-> Token Stats sebanyak 3 kali."""
         self.ensure_on_insight_tab()
         for i in range(1, 4):
-            self._update_hud("ACTION", f"Roundtrip {i}/3", "Klik tab Token Stats")
+            self._update_hud("WHEN", f"Navigasi Putaran {i}/3", "Beralih tab Token Stats")
+            self._highlight("#dashboard-tab-token-stats", f"Round {i}: Token Stats")
             self.page.click("#dashboard-tab-token-stats")
             self.page.wait_for_selector("#dashboard-token-stats-month", timeout=5000)
 
-            self._update_hud("ACTION", f"Roundtrip {i}/3", "Klik tab Insight")
+            self._update_hud("WHEN", f"Navigasi Putaran {i}/3", "Beralih tab Insight")
+            self._highlight("#dashboard-tab-insight", f"Round {i}: Insight")
             self.page.click("#dashboard-tab-insight")
             self.page.wait_for_selector(".summary-grid", timeout=5000)
+            self._clear_highlight()
 
         self.page.wait_for_load_state("networkidle")
         time.sleep(1)
@@ -1112,6 +1222,8 @@ class TokenMonitoringLibrary:
     @keyword("DB Verifikasi Integritas Tampilan Dan Ketiadaan Kebocoran Koneksi")
     def verify_roundtrip_integrity_and_connection_leak(self):
         """Memverifikasi grafik tetap 12 batang dan koneksi database kembali ke baseline."""
+        self._update_hud("THEN", "Verifikasi Integritas DOM & Ketiadaan Leak", "12 Batang grafik utuh & koneksi MySQL normal")
+        self._highlight("#dashboard-panel-insight .charts-grid", "12 Batang Grafik Utuh")
         headers = self.page.query_selector_all(".chart-card h3")
         texts = [h.text_content().strip() for h in headers]
         if not any("Token Usage (Last 12 Months)" in t for t in texts):
@@ -1123,6 +1235,7 @@ class TokenMonitoringLibrary:
             post_threads = int(cur.fetchone()["Value"])
         conn.close()
 
+        self._clear_highlight()
         logger.info(f"MySQL Threads_connected: Baseline={self.baseline_threads_connected}, Post-Roundtrip={post_threads}")
         delta = abs(post_threads - self.baseline_threads_connected)
         if delta > 2:
@@ -1152,7 +1265,8 @@ class TokenMonitoringLibrary:
         target_x = box["x"] + (box["width"] * (18.0 / 30.0))
         target_y = box["y"] + (box["height"] * 0.5)
 
-        self._update_hud("ACTION", "Hover Chart", "Arahkan kursor ke batang tanggal 18")
+        self._update_hud("WHEN", "Sorot Batang Grafik Tanggal 18 Nov", "Mouse hover ke posisi bar tanggal 18")
+        self._highlight("#dashboard-panel-token-stats .canvas-bar-chart__surface", "Batang Tanggal 18")
         self.page.mouse.move(target_x, target_y)
         time.sleep(0.5)
 
@@ -1173,11 +1287,15 @@ class TokenMonitoringLibrary:
         expected_tokens = round(raw_usage / TOKEN_FIXED_PRICE, 2)
         logger.info(f"Daily 2026-11-18 SQL raw={raw_usage}, tokens={expected_tokens}")
 
+        self._update_hud("THEN", "Verifikasi Nilai Harian vs SQL & Log SUT", f"Token {expected_tokens} cocok SQL & log bersih")
+        self._highlight("#dashboard-panel-token-stats .canvas-bar-chart__surface", f"Tervalidasi {expected_tokens} Token")
+
         # Periksa tooltip jika muncul di UI
         tooltip = self.page.query_selector("#dashboard-panel-token-stats .canvas-bar-chart__tooltip")
         if tooltip:
             tt_text = tooltip.text_content().strip()
             logger.info(f"Rendered Tooltip Text: {tt_text}")
+        self._clear_highlight()
 
         warning_logs = [
             l for l in self.delta_log_lines
@@ -1204,7 +1322,8 @@ class TokenMonitoringLibrary:
         self.page.wait_for_selector("#dashboard-token-stats-month option[value='2025-12']", state="attached", timeout=10000)
         self.page.wait_for_load_state("networkidle")
 
-        self._update_hud("ACTION", "Empty State Filter", "Pilih bulan Desember 2025 (2025-12)")
+        self._update_hud("WHEN", "Pilih Filter Desember 2025", "Bulan tertua tanpa aktivitas transaksi")
+        self._highlight("#dashboard-token-stats-month", "Pilih 2025-12")
         with self.page.expect_response(lambda r: "month=2025-12" in r.url and r.status == 200, timeout=10000) as resp_info:
             self.page.select_option("#dashboard-token-stats-month", "2025-12")
 
@@ -1218,6 +1337,7 @@ class TokenMonitoringLibrary:
         self.network_responses.append(self.last_december_response)
         self.page.wait_for_load_state("networkidle")
         time.sleep(0.5)
+        self._clear_highlight()
 
     @keyword("DB Verifikasi Kondisi Nol Desember Dan Retensi Saldo Snapshot")
     def verify_empty_month_metrics_and_snapshot_retention(self):
@@ -1250,6 +1370,13 @@ class TokenMonitoringLibrary:
         conn.close()
 
         exp_bal_str = f"{int(sql_balance):,}".replace(",", ".")
+
+        self._update_hud("THEN", "Verifikasi Empty State & Retensi Saldo", f"Usage=0, TopUp=0, Saldo snapshot {exp_bal_str}")
+        self._highlight('#dashboard-panel-token-stats .metric-card:has(.metric-card__label:has-text("Usage"))', "Usage: 0")
+        self._highlight('#dashboard-panel-token-stats .metric-card:has(.metric-card__label:has-text("Top-Up"))', "Top-Up: 0")
+        self._highlight('#dashboard-panel-token-stats .metric-card:has(.metric-card__label:has-text("Token Balance"))', f"Retained: {exp_bal_str}")
+        self._highlight("#dashboard-panel-token-stats .canvas-bar-chart__surface", "Empty Chart Surface")
+        self._clear_highlight()
 
         metric_cards = self.page.query_selector_all("#dashboard-panel-token-stats .metric-card")
         ui_metrics = {}
