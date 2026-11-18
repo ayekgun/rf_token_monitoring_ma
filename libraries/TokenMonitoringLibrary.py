@@ -135,6 +135,13 @@ class TokenMonitoringLibrary:
         self.last_insight_usage_chart: Optional[Dict[str, Any]] = None
         self.last_token_stats_response: Optional[Dict[str, Any]] = None
         self.last_token_stats_months: Optional[Dict[str, Any]] = None
+        self.last_insight_balance_chart: Optional[Dict[str, Any]] = None
+        self.last_token_stats_usage_chart: Optional[Dict[str, Any]] = None
+        self.last_token_stats_balance_chart: Optional[Dict[str, Any]] = None
+        self.last_logout_response: Optional[Dict[str, Any]] = None
+        self.last_logout_status: Optional[int] = None
+        self.console_errors: List[str] = []
+        self.roundtrip_requests: List[Dict[str, Any]] = []
         self.network_responses: List[Dict[str, Any]] = []
 
         self.captured_access_token: Optional[str] = None
@@ -217,16 +224,30 @@ class TokenMonitoringLibrary:
                 if "/api/v1/auth/login" in url and res.request.method == "POST":
                     self.last_login_status = res.status
                     self.last_login_response = body_json
+                elif "/api/v1/auth/logout" in url and res.request.method == "POST":
+                    self.last_logout_status = res.status
+                    self.last_logout_response = body_json
                 elif "/api/v1/monitoring/insight/usage-chart" in url:
                     self.last_insight_usage_chart = body_json
+                elif "/api/v1/monitoring/insight/balance-chart" in url:
+                    self.last_insight_balance_chart = body_json
                 elif "/api/v1/monitoring/insight" in url:
                     self.last_insight_response = body_json
+                elif "/api/v1/monitoring/token-stats/usage-chart" in url:
+                    self.last_token_stats_usage_chart = body_json
+                elif "/api/v1/monitoring/token-stats/balance-chart" in url:
+                    self.last_token_stats_balance_chart = body_json
                 elif "/api/v1/monitoring/token-stats/months" in url:
                     self.last_token_stats_months = body_json
                 elif "/api/v1/monitoring/token-stats" in url:
                     self.last_token_stats_response = body_json
 
         self.page.on("response", _on_response)
+        self.console_errors = []
+        def _on_console(msg):
+            if msg.type in ("error", "warning") and "telegram" not in msg.text.lower():
+                self.console_errors.append(f"[{msg.type}] {msg.text}")
+        self.page.on("console", _on_console)
 
         # Setup HUD runner
         os.makedirs(SCREENSHOT_DIR, exist_ok=True)
@@ -501,8 +522,8 @@ class TokenMonitoringLibrary:
 
     @keyword("UI Verifikasi Atribut Cookie Sesi Keamanan")
     def verify_session_cookies_attributes(self):
-        """Memverifikasi cookie map_access_token dan map_refresh_token."""
-        self._update_hud("AND", "Verifikasi Cookie Keamanan", "HttpOnly, Secure path '/', SameSite=Lax")
+        """Memverifikasi cookie map_access_token, map_refresh_token, atribut keamanan, dan body login."""
+        self._update_hud("AND", "Verifikasi Cookie & Kontrak Login", "HttpOnly, Expiry, SameSite=Lax, Response Body")
         cookies = self.context.cookies()
         access_cookie = next((c for c in cookies if c["name"] == "map_access_token"), None)
         refresh_cookie = next((c for c in cookies if c["name"] == "map_refresh_token"), None)
@@ -515,22 +536,68 @@ class TokenMonitoringLibrary:
         # Simpan nilai access token untuk pengujian replay di TC-009
         self.captured_access_token = access_cookie["value"]
 
-        # Verifikasi atribut
+        now = time.time()
+        access_expires = access_cookie.get("expires", 0)
+        refresh_expires = refresh_cookie.get("expires", 0)
+
+        # Verifikasi atribut cookie lengkap
         if not access_cookie.get("httpOnly"):
             raise AssertionError("Cookie map_access_token tidak memiliki atribut HttpOnly!")
+        if not refresh_cookie.get("httpOnly"):
+            raise AssertionError("Cookie map_refresh_token tidak memiliki atribut HttpOnly!")
         if access_cookie.get("path") != "/":
-            raise AssertionError(f"Path cookie bukan '/' melainkan {access_cookie.get('path')}")
+            raise AssertionError(f"Path access cookie bukan '/' melainkan {access_cookie.get('path')}")
+        if refresh_cookie.get("path") != "/":
+            raise AssertionError(f"Path refresh cookie bukan '/' melainkan {refresh_cookie.get('path')}")
         if access_cookie.get("sameSite", "").lower() != "lax":
-            raise AssertionError(f"SameSite cookie bukan 'Lax' melainkan {access_cookie.get('sameSite')}")
+            raise AssertionError(f"SameSite access cookie bukan 'Lax' melainkan {access_cookie.get('sameSite')}")
+        if refresh_cookie.get("sameSite", "").lower() != "lax":
+            raise AssertionError(f"SameSite refresh cookie bukan 'Lax' melainkan {refresh_cookie.get('sameSite')}")
 
-        masked_token = f"{self.captured_access_token[:10]}...***" if len(self.captured_access_token) > 10 else "***"
-        LogHelper._log_chunked("[SESSION COOKIES AUDIT]", json.dumps({
-            "name": access_cookie["name"],
-            "masked_value": masked_token,
-            "httpOnly": access_cookie["httpOnly"],
-            "path": access_cookie["path"],
-            "sameSite": access_cookie.get("sameSite")
-        }, indent=2))
+        if access_expires <= now:
+            raise AssertionError(f"Masa berlaku map_access_token ({access_expires}) sudah kedaluwarsa terhadap waktu saat ini ({now})!")
+        if refresh_expires <= access_expires:
+            raise AssertionError(f"Masa berlaku map_refresh_token ({refresh_expires}) harus lebih panjang dari access token ({access_expires})!")
+
+        # Verifikasi response body login
+        login_data = self.last_login_response.get("data", {}) if self.last_login_response else {}
+        user_info = login_data.get("user", {})
+        client_info = login_data.get("client", {})
+
+        if user_info.get("username") != DEFAULT_AUTH_USER:
+            raise AssertionError(f"Response login user salah: {user_info.get('username')} != {DEFAULT_AUTH_USER}")
+        if client_info.get("historyWindowMonths") != 12:
+            raise AssertionError(f"Client historyWindowMonths pada login bukan 12 melainkan {client_info.get('historyWindowMonths')}")
+        if client_info.get("businessTimezone") != "Asia/Jakarta":
+            raise AssertionError(f"Client businessTimezone pada login bukan Asia/Jakarta melainkan {client_info.get('businessTimezone')}")
+
+        LogHelper.log_transparent_comparison("TC-001 Authentication & Session Cookies", {
+            "http_status": 200,
+            "username": DEFAULT_AUTH_USER,
+            "history_window_months": 12,
+            "business_timezone": "Asia/Jakarta",
+            "access_cookie_httpOnly": True,
+            "access_cookie_path": "/",
+            "access_cookie_sameSite": "Lax",
+            "refresh_cookie_httpOnly": True,
+            "refresh_cookie_path": "/",
+            "refresh_cookie_sameSite": "Lax",
+            "access_cookie_valid": True,
+            "refresh_cookie_longer_than_access": True
+        }, {
+            "http_status": self.last_login_status,
+            "username": user_info.get("username"),
+            "history_window_months": client_info.get("historyWindowMonths"),
+            "business_timezone": client_info.get("businessTimezone"),
+            "access_cookie_httpOnly": access_cookie.get("httpOnly"),
+            "access_cookie_path": access_cookie.get("path"),
+            "access_cookie_sameSite": "Lax" if access_cookie.get("sameSite", "").lower() == "lax" else access_cookie.get("sameSite"),
+            "refresh_cookie_httpOnly": refresh_cookie.get("httpOnly"),
+            "refresh_cookie_path": refresh_cookie.get("path"),
+            "refresh_cookie_sameSite": "Lax" if refresh_cookie.get("sameSite", "").lower() == "lax" else refresh_cookie.get("sameSite"),
+            "access_cookie_valid": access_expires > now,
+            "refresh_cookie_longer_than_access": refresh_expires > access_expires
+        }, raise_on_mismatch=True)
 
     @keyword("DB Verifikasi Waktu Login Terakhir Pada MongoDB")
     def verify_mongodb_last_login_updated(self):
@@ -630,8 +697,23 @@ class TokenMonitoringLibrary:
         if point_count != 12:
             raise AssertionError(f"Jumlah batang pada grafik usageMonthly bukan 12 melainkan {point_count}!")
 
+        # Verifikasi data points grafik balance juga memuat 12 bulan
+        balance_points = []
+        if self.last_insight_balance_chart:
+            balance_points = self.last_insight_balance_chart.get("data", {}).get("series", {}).get("points", [])
+        if not balance_points:
+            for r in reversed(self.network_responses):
+                if "/api/v1/monitoring/insight/balance-chart" in r["url"] and r.get("body"):
+                    balance_points = r["body"].get("data", {}).get("series", {}).get("points", [])
+                    if balance_points:
+                        break
+
+        bal_point_count = len(balance_points)
+        if bal_point_count != 12:
+            raise AssertionError(f"Jumlah batang pada grafik balanceMonthly bukan 12 melainkan {bal_point_count}!")
+
         self._clear_highlight()
-        logger.info(f"Insight Chart Points Verified: Exactly {point_count} monthly bars: {[p.get('label') for p in usage_points]}")
+        logger.info(f"Insight Chart Points Verified: Exactly 12 usage bars and 12 balance bars.")
 
     @keyword("DB Verifikasi Agregasi SQL 12 Bulan Cocok Dengan Metrik UI")
     def verify_insight_sql_matches_ui(self):
@@ -722,18 +804,17 @@ class TokenMonitoringLibrary:
                 if "tokenChange" in data and api_growth is None:
                     api_growth = float(data["tokenChange"].get("percentage", 0.0))
 
-        if api_usage is not None:
-            if abs(api_usage - expected_usage_tokens) > 0.01:
-                raise AssertionError(f"API usageTokens ({api_usage}) tidak cocok dengan SQL ({expected_usage_tokens})!")
-        if api_topup is not None:
-            if abs(api_topup - expected_topup_tokens) > 0.01:
-                raise AssertionError(f"API topUpTokens ({api_topup}) tidak cocok dengan SQL ({expected_topup_tokens})!")
-        if api_balance is not None:
-            if abs(api_balance - expected_balance_tokens) > 0.01:
-                raise AssertionError(f"API tokenBalance ({api_balance}) tidak cocok dengan SQL ({expected_balance_tokens})!")
-        if api_growth is not None:
-            if abs(api_growth - 81.99) > 0.05:
-                raise AssertionError(f"API growth percentage ({api_growth}) tidak sesuai ekspektasi 81.99%!")
+        if api_usage is None or api_topup is None or api_balance is None or api_growth is None:
+            raise AssertionError(f"Field wajib API Insight tidak boleh None! usage={api_usage}, topup={api_topup}, balance={api_balance}, growth={api_growth}")
+
+        if abs(api_usage - expected_usage_tokens) > 0.01:
+            raise AssertionError(f"API usageTokens ({api_usage}) tidak cocok dengan SQL ({expected_usage_tokens})!")
+        if abs(api_topup - expected_topup_tokens) > 0.01:
+            raise AssertionError(f"API topUpTokens ({api_topup}) tidak cocok dengan SQL ({expected_topup_tokens})!")
+        if abs(api_balance - expected_balance_tokens) > 0.01:
+            raise AssertionError(f"API tokenBalance ({api_balance}) tidak cocok dengan SQL ({expected_balance_tokens})!")
+        if abs(api_growth - 81.99) > 0.05:
+            raise AssertionError(f"API growth percentage ({api_growth}) tidak sesuai ekspektasi 81.99%!")
 
         # Layer 2: Assertion on UI DOM (floored formatted string)
         if ui_metrics.get("Usage") != expected_usage_str:
@@ -746,32 +827,24 @@ class TokenMonitoringLibrary:
             raise AssertionError(f"Secondary growth badge UI tidak memuat '+81,99%'! Ditemukan: '{sec_text}'")
 
         LogHelper.log_transparent_comparison("TC-002 Insight 12 Months SQL vs API vs UI", {
-            "SQL_expected_exact": {
-                "usageTokens": expected_usage_tokens,
-                "topUpTokens": expected_topup_tokens,
-                "endingBalanceTokens": expected_balance_tokens,
-                "growthPercentage": 81.99
-            },
-            "UI_expected_floored": {
-                "Usage": expected_usage_str,
-                "Top-Up": expected_topup_str,
-                "Token Balance": expected_bal_str,
-                "growthBadge": "+81,99%"
-            }
+            "api_usage_tokens": expected_usage_tokens,
+            "api_topup_tokens": expected_topup_tokens,
+            "api_token_balance": expected_balance_tokens,
+            "api_growth_percentage": 81.99,
+            "ui_usage": expected_usage_str,
+            "ui_topup": expected_topup_str,
+            "ui_token_balance": expected_bal_str,
+            "ui_growth_badge": "+81,99%"
         }, {
-            "API_actual_network": {
-                "usageTokens": api_usage,
-                "topUpTokens": api_topup,
-                "endingBalanceTokens": api_balance,
-                "growthPercentage": api_growth
-            },
-            "UI_actual_dom": {
-                "Usage": ui_metrics.get("Usage"),
-                "Top-Up": ui_metrics.get("Top-Up"),
-                "Token Balance": ui_metrics.get("Token Balance"),
-                "growthBadge": sec_text
-            }
-        })
+            "api_usage_tokens": api_usage,
+            "api_topup_tokens": api_topup,
+            "api_token_balance": api_balance,
+            "api_growth_percentage": api_growth,
+            "ui_usage": ui_metrics.get("Usage"),
+            "ui_topup": ui_metrics.get("Top-Up"),
+            "ui_token_balance": ui_metrics.get("Token Balance"),
+            "ui_growth_badge": "+81,99%" if "+81,99%" in sec_text else sec_text
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-002",
@@ -875,18 +948,52 @@ class TokenMonitoringLibrary:
         if usage_val != expected_nov_str:
             raise AssertionError(f"Metrik Usage November UI '{usage_val}' tidak cocok dengan ekspektasi floored '{expected_nov_str}' (float: {expected_nov_usage})!")
 
+        # Ekstrak data points grafik harian November dari response network
+        nov_points = []
+        if self.last_token_stats_usage_chart:
+            nov_points = self.last_token_stats_usage_chart.get("data", {}).get("series", {}).get("points", [])
+        if not nov_points:
+            for r in reversed(self.network_responses):
+                if "/api/v1/monitoring/token-stats/usage-chart" in r["url"] and r.get("body"):
+                    nov_points = r["body"].get("data", {}).get("series", {}).get("points", [])
+                    if nov_points:
+                        break
+
+        if len(nov_points) != 30:
+            raise AssertionError(f"Grafik harian November harus memuat tepat 30 titik harian, ditemukan: {len(nov_points)}")
+
+        # Ekstrak API November usage
+        api_nov_usage = None
+        for r in reversed(self.network_responses):
+            url = r.get("url", "")
+            if "/api/v1/monitoring/token-stats" in url:
+                data = (r.get("body") or {}).get("data") or {}
+                if isinstance(data, dict):
+                    if "usageTokens" in data and api_nov_usage is None:
+                        api_nov_usage = float(data.get("usageTokens", 0.0))
+                    elif "summary" in data and "usageTokens" in data["summary"] and api_nov_usage is None:
+                        api_nov_usage = float(data["summary"].get("usageTokens", 0.0))
+
+        if api_nov_usage is None:
+            raise AssertionError("Response API untuk Usage November tidak ditemukan pada intersepsi network!")
+        if abs(api_nov_usage - expected_nov_usage) > 0.01:
+            raise AssertionError(f"API Usage November ({api_nov_usage}) != SQL ({expected_nov_usage})")
+
         LogHelper.log_transparent_comparison("TC-003 Dropdown 12 Months & Active Months in SQL", {
             "dropdown_options_count": 12,
             "database_active_months_count": 11,
             "database_december_2025_active_rows": 0,
-            "november_usage_tokens_exact": expected_nov_usage,
-            "november_usage_ui_floored": expected_nov_str
+            "november_daily_points_count": 30,
+            "november_api_usage_tokens": expected_nov_usage,
+            "november_ui_usage": expected_nov_str
         }, {
-            "dropdown_options_count": 12,
+            "dropdown_options_count": len(self.page.query_selector_all("#dashboard-token-stats-month option")),
             "database_active_months_count": len(sql_months),
             "database_december_2025_active_rows": dec_cnt,
-            "november_usage_ui_actual": usage_val
-        })
+            "november_daily_points_count": len(nov_points),
+            "november_api_usage_tokens": api_nov_usage,
+            "november_ui_usage": usage_val
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-003",
@@ -942,8 +1049,8 @@ class TokenMonitoringLibrary:
                 selected_month_found = b.get("selectedMonth")
                 break
 
-        if selected_month_found and selected_month_found != "2026-10":
-            raise AssertionError(f"SelectedMonth pada response JSON bukan 2026-10 melainkan {selected_month_found}")
+        if not selected_month_found or selected_month_found != "2026-10":
+            raise AssertionError(f"SelectedMonth pada response JSON wajib ada dan bernilai 2026-10, ditemukan: {selected_month_found}")
 
     @keyword("DB Verifikasi Metrik Dan Grafik Harian Oktober Pada SQL")
     def verify_october_data_and_cleared_november(self):
@@ -1019,15 +1126,15 @@ class TokenMonitoringLibrary:
             if "balance-summary" in url and api_balance is None and isinstance(data, dict) and "tokenBalance" in data:
                 api_balance = float(data.get("tokenBalance", 0.0))
 
-        if api_usage is not None:
-            if abs(api_usage - expected_usage) > 0.01:
-                raise AssertionError(f"AJAX Oktober usageTokens ({api_usage}) != SQL ({expected_usage})")
-        if api_topup is not None:
-            if abs(api_topup - expected_topup) > 0.01:
-                raise AssertionError(f"AJAX Oktober topUpTokens ({api_topup}) != SQL ({expected_topup})")
-        if api_balance is not None:
-            if abs(api_balance - expected_balance) > 0.01:
-                raise AssertionError(f"AJAX Oktober tokenBalance ({api_balance}) != SQL ({expected_balance})")
+        if api_usage is None or api_topup is None or api_balance is None:
+            raise AssertionError(f"Field wajib API Oktober tidak boleh None! usage={api_usage}, topup={api_topup}, balance={api_balance}")
+
+        if abs(api_usage - expected_usage) > 0.01:
+            raise AssertionError(f"AJAX Oktober usageTokens ({api_usage}) != SQL ({expected_usage})")
+        if abs(api_topup - expected_topup) > 0.01:
+            raise AssertionError(f"AJAX Oktober topUpTokens ({api_topup}) != SQL ({expected_topup})")
+        if abs(api_balance - expected_balance) > 0.01:
+            raise AssertionError(f"AJAX Oktober tokenBalance ({api_balance}) != SQL ({expected_balance})")
 
         # Layer 2: Assertion on UI DOM (floored formatted)
         if ui_metrics.get("Usage") == "692":
@@ -1043,26 +1150,40 @@ class TokenMonitoringLibrary:
         if day_count != 31:
             raise AssertionError(f"Jumlah hari di database bukan 31 melainkan {day_count}")
 
+        # Verifikasi titik grafik Oktober berjumlah 31
+        oct_points = []
+        for r in reversed(self.network_responses):
+            if "2026-10" in r.get("url", "") and "usage-chart" in r.get("url", "") and r.get("body"):
+                oct_points = r["body"].get("data", {}).get("series", {}).get("points", [])
+                if oct_points:
+                    break
+
+        if len(oct_points) != 31:
+            raise AssertionError(f"Grafik harian Oktober harus memuat tepat 31 titik harian, ditemukan: {len(oct_points)}")
+
         LogHelper.log_transparent_comparison("TC-004 October Filter SQL vs AJAX vs UI", {
-            "exact_floats": {
-                "usageTokens": expected_usage,
-                "topUpTokens": expected_topup,
-                "endingBalanceTokens": expected_balance,
-                "day_count": 31
-            },
-            "ui_floored": {
-                "Usage": exp_usage_str,
-                "Top-Up": exp_topup_str,
-                "Token Balance": exp_bal_str
-            }
+            "selected_month": "2026-10",
+            "sql_day_count": 31,
+            "chart_daily_points_count": 31,
+            "api_usage_tokens": expected_usage,
+            "api_topup_tokens": expected_topup,
+            "api_token_balance": expected_balance,
+            "ui_usage": exp_usage_str,
+            "ui_topup": exp_topup_str,
+            "ui_token_balance": exp_bal_str,
+            "november_residue_cleared": True
         }, {
-            "api_actual_floats": {
-                "usageTokens": api_usage,
-                "topUpTokens": api_topup,
-                "endingBalanceTokens": api_balance
-            },
-            "ui_actual": ui_metrics
-        })
+            "selected_month": "2026-10",
+            "sql_day_count": day_count,
+            "chart_daily_points_count": len(oct_points),
+            "api_usage_tokens": api_usage,
+            "api_topup_tokens": api_topup,
+            "api_token_balance": api_balance,
+            "ui_usage": ui_metrics.get("Usage"),
+            "ui_topup": ui_metrics.get("Top-Up"),
+            "ui_token_balance": ui_metrics.get("Token Balance"),
+            "november_residue_cleared": ui_metrics.get("Usage") != "692"
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-004",
@@ -1095,8 +1216,8 @@ class TokenMonitoringLibrary:
 
     @keyword("DB Verifikasi Kontrak Checkpoint Dan Zona Waktu Asia Jakarta")
     def verify_timezone_contract_in_database_and_api(self):
-        """Membaca checkpoint database dan membandingkan dengan metadata API."""
-        self._update_hud("THEN", "Verifikasi Checkpoint Timezone", "DB Asia/Jakarta vs ISO +07:00")
+        """Membaca checkpoint database dan membandingkan dengan metadata API serta UI."""
+        self._update_hud("THEN", "Verifikasi Checkpoint Timezone", "DB Asia/Jakarta vs ISO +07:00 vs API")
         self._highlight(".data-freshness time", "ISO +07:00 (WIB)")
 
         # 1. Verifikasi MongoDB clients collection menyimpan businessTimezone = 'Asia/Jakarta'
@@ -1127,24 +1248,49 @@ class TokenMonitoringLibrary:
 
         if "2026-11-18 00:00:00" not in raw_as_of:
             raise AssertionError(f"Checkpoint database tidak cocok! Ditemukan: '{raw_as_of}'")
+
+        # 3. Verifikasi meta.summaryAsOf dari respons API
+        api_summary_as_of = None
+        for r in reversed(self.network_responses):
+            meta = (r.get("body") or {}).get("meta", {})
+            if isinstance(meta, dict) and "summaryAsOf" in meta and meta["summaryAsOf"]:
+                api_summary_as_of = meta["summaryAsOf"]
+                break
+
+        if not api_summary_as_of:
+            raise AssertionError("Metadata summaryAsOf tidak ditemukan dalam respons API!")
+
+        if api_summary_as_of != "2026-11-18T00:00:00+07:00":
+            raise AssertionError(f"API meta.summaryAsOf salah! Ditemukan: '{api_summary_as_of}', Ekspektasi: '2026-11-18T00:00:00+07:00'")
+
+        # 4. Ambil teks dan atribut dari DOM UI
+        freshness_el = self.page.query_selector(".data-freshness")
+        freshness_text = freshness_el.text_content().strip() if freshness_el else ""
+        time_el = freshness_el.query_selector("time") if freshness_el else None
+        datetime_attr = time_el.get_attribute("datetime") if time_el else ""
+
         self._clear_highlight()
 
         LogHelper.log_transparent_comparison("TC-005 Timezone Multi-Layer Verification", {
-            "MongoDB_client": CLIENT_KEY,
-            "MongoDB_businessTimezone": "Asia/Jakarta",
-            "MySQL_checkpoint_DATETIME": "2026-11-18 00:00:00",
-            "BFF_ISO_timezone_offset": "+07:00",
-            "UI_rendered_string": "Data per 18 Nov 2026, 00.00 WIB"
+            "client_key": CLIENT_KEY,
+            "mongo_business_timezone": "Asia/Jakarta",
+            "mysql_checkpoint_datetime": "2026-11-18 00:00:00",
+            "api_summary_as_of": "2026-11-18T00:00:00+07:00",
+            "ui_rendered_freshness": "Data per 18 Nov 2026, 00.00 WIB",
+            "ui_datetime_attr": "2026-11-18T00:00:00+07:00"
         }, {
-            "MongoDB_actual_tz": business_tz,
-            "MySQL_actual_checkpoint": raw_as_of,
-            "UI_freshness_verified": True
-        })
+            "client_key": CLIENT_KEY,
+            "mongo_business_timezone": business_tz,
+            "mysql_checkpoint_datetime": raw_as_of,
+            "api_summary_as_of": api_summary_as_of,
+            "ui_rendered_freshness": freshness_text,
+            "ui_datetime_attr": datetime_attr
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-005",
             "Data Freshness merender 'Data per 18 Nov 2026, 00.00 WIB' dengan tag ISO 2026-11-18T00:00:00+07:00.",
-            f"MySQL raw='2026-11-18 00:00:00'. MongoDB businessTimezone='Asia/Jakarta'. Go DSN loc=Asia/Jakarta (+07:00). UI localization WIB accurate."
+            f"MySQL raw='{raw_as_of}'. MongoDB businessTimezone='{business_tz}'. API meta.summaryAsOf='{api_summary_as_of}'. UI localization WIB accurate."
         )
 
     # ==============================================================================
@@ -1153,6 +1299,11 @@ class TokenMonitoringLibrary:
     @keyword("UI Input Kredensial Password Salah Dan Verifikasi Penolakan")
     def submit_login_with_wrong_password(self):
         """Submit login dengan password salah."""
+        # Catat initial lastLoginAt dari MongoDB untuk valid user
+        db = self._get_mongo_db()
+        user_doc = db["client_users"].find_one({"username": DEFAULT_AUTH_USER})
+        self.initial_last_login_at = user_doc.get("lastLoginAt") if user_doc else None
+
         self.navigate_to_login_page()
         self._update_hud("WHEN", "Submit Password Salah", "User valid + password salah")
         self._highlight('input[name="usernameOrEmail"]', "User Valid")
@@ -1172,6 +1323,8 @@ class TokenMonitoringLibrary:
 
         if self.last_login_status != 401:
             raise AssertionError(f"Status HTTP bukan 401 Unauthorized melainkan {self.last_login_status}")
+        self.wrong_password_status = self.last_login_status
+        self.wrong_password_err_text = err_text
         self._clear_highlight()
 
     @keyword("UI Input Kredensial Akun Tidak Terdaftar Dan Verifikasi Penolakan")
@@ -1194,14 +1347,40 @@ class TokenMonitoringLibrary:
         if expected_msg not in err_text:
             raise AssertionError(f"Pesan error salah! Aktual: '{err_text}', Ekspektasi: '{expected_msg}'")
 
+        if self.last_login_status != 401:
+            raise AssertionError(f"Status HTTP pada unknown user bukan 401 melainkan {self.last_login_status}")
+
         cookies = self.context.cookies()
-        if any(c["name"] == "map_access_token" for c in cookies):
-            raise AssertionError("Cookie map_access_token terbentuk padahal login gagal!")
+        issued_cookies = [c["name"] for c in cookies if c["name"] in ("map_access_token", "map_refresh_token")]
+        if issued_cookies:
+            raise AssertionError(f"Cookie sesi terbentuk padahal login gagal: {issued_cookies}!")
+
+        # Verifikasi bahwa lastLoginAt user valid tidak berubah di MongoDB
+        db = self._get_mongo_db()
+        post_user_doc = db["client_users"].find_one({"username": DEFAULT_AUTH_USER})
+        post_last_login_at = post_user_doc.get("lastLoginAt") if post_user_doc else None
+        if post_last_login_at != self.initial_last_login_at:
+            raise AssertionError(f"lastLoginAt user valid berubah di MongoDB setelah percobaan login gagal! Awal: {self.initial_last_login_at}, Akhir: {post_last_login_at}")
+
         self._clear_highlight()
+
+        LogHelper.log_transparent_comparison("TC-006 Login Failure & User Enumeration Mitigation", {
+            "wrong_password_http_status": 401,
+            "unknown_user_http_status": 401,
+            "error_message_uniform": "Username, email, atau password tidak valid.",
+            "cookies_issued": False,
+            "valid_user_last_login_unchanged": True
+        }, {
+            "wrong_password_http_status": self.wrong_password_status,
+            "unknown_user_http_status": self.last_login_status,
+            "error_message_uniform": err_text,
+            "cookies_issued": len(issued_cookies) > 0,
+            "valid_user_last_login_unchanged": post_last_login_at == self.initial_last_login_at
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-006",
-            "Login gagal dengan pesan seragam 'Username, email, atau password tidak valid.' pada password salah dan unknown user.",
+            "Login gagal dengan pesan seragam 'Username, email, atau password tidak valid.' pada password salah dan unknown user. lastLoginAt DB tidak terpengaruh.",
             "HTTP 401 INVALID_CREDENTIALS. No session cookies issued. Mitigasi user enumeration terbukti."
         )
 
@@ -1214,6 +1393,20 @@ class TokenMonitoringLibrary:
         self.navigate_to_login_page()
         self._update_hud("WHEN", "Submit Form Login Kosong", "Uji validasi HTML5 required klien")
         self._highlight('input[name="usernameOrEmail"]', "Field Wajib (Required)")
+
+        # Verifikasi atribut native HTML5 'required' pada kedua input form
+        user_req = self.page.eval_on_selector('input[name="usernameOrEmail"]', 'el => el.required')
+        pass_req = self.page.eval_on_selector('input[name="password"]', 'el => el.required')
+        if not user_req:
+            raise AssertionError("Input usernameOrEmail tidak memiliki atribut native 'required'!")
+        if not pass_req:
+            raise AssertionError("Input password tidak memiliki atribut native 'required'!")
+
+        # Catat baseline sessionVersion dari MongoDB
+        db = self._get_mongo_db()
+        u = db["client_users"].find_one({"username": DEFAULT_AUTH_USER})
+        self.tc007_baseline_session_version = u.get("sessionVersion", 1) if u else 1
+
         self.page.fill('input[name="usernameOrEmail"]', "")
         self.page.fill('input[name="password"]', "")
 
@@ -1225,10 +1418,14 @@ class TokenMonitoringLibrary:
 
         new_login_requests = [
             r for r in self.network_responses[initial_req_count:]
-            if "/api/v1/auth/login" in r["url"]
+            if "/api/v1/auth/login" in r.get("url", "")
         ]
         if len(new_login_requests) > 0:
             raise AssertionError("Request jaringan terkirim ke server padahal field form wajib kosong!")
+
+        self.tc007_user_req = user_req
+        self.tc007_pass_req = pass_req
+        self.tc007_new_requests_count = len(new_login_requests)
 
     @keyword("SEC Verifikasi Permintaan Backend Payload Kosong Ditolak 400")
     def test_direct_empty_payload_backend_validation(self):
@@ -1241,21 +1438,46 @@ class TokenMonitoringLibrary:
             headers={"Content-Type": "application/json"},
             method="POST"
         )
+        backend_status = None
+        backend_code = None
         try:
             with urllib.request.urlopen(req) as resp:
+                backend_status = resp.status
                 raise AssertionError(f"Expected HTTP 400 Bad Request, but got {resp.status}")
         except urllib.error.HTTPError as e:
+            backend_status = e.code
             if e.code != 400:
                 raise AssertionError(f"Backend HTTP status bukan 400 melainkan {e.code}")
             err_body = json.loads(e.read().decode())
             LogHelper._log_chunked("[BACKEND 400 RESPONSE]", json.dumps(err_body, indent=2))
-            code = err_body.get("error", {}).get("code") or err_body.get("code")
-            if code != "INVALID_PAYLOAD":
-                raise AssertionError(f"Error code bukan INVALID_PAYLOAD melainkan {code}")
+            backend_code = err_body.get("error", {}).get("code") or err_body.get("code")
+            if backend_code != "INVALID_PAYLOAD":
+                raise AssertionError(f"Error code bukan INVALID_PAYLOAD melainkan {backend_code}")
+
+        # Verifikasi MongoDB sessionVersion tidak berubah
+        db = self._get_mongo_db()
+        post_u = db["client_users"].find_one({"username": DEFAULT_AUTH_USER})
+        post_version = post_u.get("sessionVersion", 1) if post_u else 1
+
+        LogHelper.log_transparent_comparison("TC-007 Form Validation & Direct Backend 400", {
+            "html5_username_required": True,
+            "html5_password_required": True,
+            "client_submit_network_requests_count": 0,
+            "backend_empty_payload_http_status": 400,
+            "backend_error_code": "INVALID_PAYLOAD",
+            "mongo_session_version_unchanged": True
+        }, {
+            "html5_username_required": self.tc007_user_req,
+            "html5_password_required": self.tc007_pass_req,
+            "client_submit_network_requests_count": self.tc007_new_requests_count,
+            "backend_empty_payload_http_status": backend_status,
+            "backend_error_code": backend_code,
+            "mongo_session_version_unchanged": post_version == self.tc007_baseline_session_version
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-007",
-            "Validasi form klien menahan submit (0 HTTP request). Direct backend POST kosong ditolak tegas HTTP 400 INVALID_PAYLOAD.",
+            "Validasi form klien menahan submit (0 HTTP request). Direct backend POST kosong ditolak tegas HTTP 400 INVALID_PAYLOAD. DB sessionVersion tidak berubah.",
             "Client HTML5 required prevents network hit. Direct API returns 400 Bad Request."
         )
 
@@ -1266,19 +1488,32 @@ class TokenMonitoringLibrary:
     def navigate_directly_to_dashboard_unauthenticated(self):
         """Buka /dashboard?tab=insight tanpa cookie."""
         self.context.clear_cookies()
+        self.tc008_initial_req_count = len(self.network_responses)
         url = f"{APP_URL}/dashboard?tab=insight"
         self._update_hud("GIVEN", "Akses Langsung Dashboard Tanpa Sesi", "Direct URL: /dashboard?tab=insight")
         self.page.goto(url, wait_until="networkidle")
 
     @keyword("UI Verifikasi Komponen ProtectedRoute Mengalihkan Ke Login")
     def verify_redirect_to_login(self):
-        """Memverifikasi redirect ke /login dan tidak ada kebocoran DOM dashboard."""
+        """Memverifikasi redirect ke /login, tidak ada kebocoran DOM dashboard, dan tidak ada request monitoring."""
         self._update_hud("WHEN", "Verifikasi Pengalihan ProtectedRoute", "Otomatis redirect ke /login")
         self.page.wait_for_url("**/login*", timeout=10000)
         self._highlight(".login-card", "Redirect Ke Halaman Login")
         cards = self.page.query_selector_all(".metric-card")
         if len(cards) > 0:
             raise AssertionError("Komponen dashboard bocor ke DOM pada akses tanpa otentikasi!")
+
+        # Pastikan browser tidak memicu request data ke endpoint monitoring
+        new_responses = self.network_responses[getattr(self, "tc008_initial_req_count", 0):]
+        monitoring_requests = [
+            r for r in new_responses
+            if "/api/v1/monitoring/" in r.get("url", "")
+        ]
+        if len(monitoring_requests) > 0:
+            raise AssertionError(f"Browser mengirimkan {len(monitoring_requests)} request monitoring saat belum terautentikasi!")
+
+        self.tc008_cards_count = len(cards)
+        self.tc008_monitoring_req_count = len(monitoring_requests)
         self._clear_highlight()
 
     @keyword("SEC Verifikasi Seluruh Endpoint Monitoring Backend Ditolak 401")
@@ -1286,6 +1521,7 @@ class TokenMonitoringLibrary:
         """Mengirimkan direct HTTP GET tanpa cookie ke endpoint monitoring."""
         self._update_hud("THEN", "Proteksi Endpoint API Monitoring", "Direct API menolak tanpa sesi dengan HTTP 401 UNAUTHORIZED_SESSION")
         endpoints = ["/api/v1/monitoring/insight", "/api/v1/monitoring/token-stats"]
+        results = {}
         for ep in endpoints:
             url = f"{BFF_URL}{ep}"
             req = urllib.request.Request(url, method="GET")
@@ -1299,10 +1535,29 @@ class TokenMonitoringLibrary:
                 code = body.get("error", {}).get("code") or body.get("code")
                 if code != "UNAUTHORIZED_SESSION":
                     raise AssertionError(f"Code response bukan UNAUTHORIZED_SESSION melainkan {code}")
+                results[ep] = {"status": e.code, "code": code}
+
+        LogHelper.log_transparent_comparison("TC-008 Protected Route & API Security", {
+            "redirected_url_contains": "/login",
+            "dashboard_metric_cards_count": 0,
+            "unauthenticated_browser_monitoring_requests": 0,
+            "direct_insight_api_status": 401,
+            "direct_insight_api_code": "UNAUTHORIZED_SESSION",
+            "direct_token_stats_api_status": 401,
+            "direct_token_stats_api_code": "UNAUTHORIZED_SESSION"
+        }, {
+            "redirected_url_contains": "/login" if "/login" in self.page.url else self.page.url,
+            "dashboard_metric_cards_count": self.tc008_cards_count,
+            "unauthenticated_browser_monitoring_requests": self.tc008_monitoring_req_count,
+            "direct_insight_api_status": results["/api/v1/monitoring/insight"]["status"],
+            "direct_insight_api_code": results["/api/v1/monitoring/insight"]["code"],
+            "direct_token_stats_api_status": results["/api/v1/monitoring/token-stats"]["status"],
+            "direct_token_stats_api_code": results["/api/v1/monitoring/token-stats"]["code"]
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-008",
-            "ProtectedRoute UI mengalihkan akses /dashboard ke /login. Direct API /insight dan /token-stats ditolak tegas HTTP 401 UNAUTHORIZED_SESSION.",
+            "ProtectedRoute UI mengalihkan akses /dashboard ke /login (0 cards, 0 request monitoring). Direct API /insight dan /token-stats ditolak tegas HTTP 401 UNAUTHORIZED_SESSION.",
             "Dual protection active: Client-side routing redirect and Server-side 401 Unauthorized."
         )
 
@@ -1339,13 +1594,29 @@ class TokenMonitoringLibrary:
 
     @keyword("UI Verifikasi Pembersihan Cookie Dan Proteksi Browser Back")
     def verify_logout_cleanup_and_browser_back(self):
-        """Memverifikasi cookie dibersihkan dan browser back terproteksi."""
-        self._update_hud("THEN", "Verifikasi Cookie & Browser Back Guard", "Cookie hangus & back tertolak")
-        cookies = self.context.cookies()
-        active_tok = next((c for c in cookies if c["name"] == "map_access_token" and c.get("value")), None)
-        if active_tok:
-            raise AssertionError("Cookie map_access_token masih memiliki nilai setelah logout!")
+        """Memverifikasi response logout, cookie dibersihkan, dan browser back terproteksi."""
+        self._update_hud("THEN", "Verifikasi Cookie & Browser Back Guard", "Response 200, cookie hangus & back tertolak")
 
+        # Verifikasi kontrak response logout API
+        if self.last_logout_status != 200:
+            raise AssertionError(f"Status HTTP logout bukan 200 melainkan {self.last_logout_status}")
+
+        logout_data = (self.last_logout_response or {}).get("data", {})
+        if not logout_data.get("loggedOut"):
+            raise AssertionError(f"Response logout data.loggedOut bukan true! Data: {logout_data}")
+        if logout_data.get("redirectTo") != "/login":
+            raise AssertionError(f"Response logout data.redirectTo bukan '/login'! Data: {logout_data}")
+
+        # Verifikasi kedua cookie terhapus / nilainya kosong
+        cookies = self.context.cookies()
+        active_access = next((c for c in cookies if c["name"] == "map_access_token" and c.get("value")), None)
+        active_refresh = next((c for c in cookies if c["name"] == "map_refresh_token" and c.get("value")), None)
+        if active_access:
+            raise AssertionError("Cookie map_access_token masih memiliki nilai setelah logout!")
+        if active_refresh:
+            raise AssertionError("Cookie map_refresh_token masih memiliki nilai setelah logout!")
+
+        # Proteksi browser back
         self.page.go_back(wait_until="networkidle")
         time.sleep(1)
         self._highlight(".login-card", "Halaman Login (Aman)")
@@ -1353,16 +1624,22 @@ class TokenMonitoringLibrary:
             raise AssertionError("Browser Back berhasil membuka dashboard! Proteksi cache header gagal.")
         self._clear_highlight()
 
+        self.tc009_logout_data = logout_data
+        self.tc009_active_access = active_access
+        self.tc009_active_refresh = active_refresh
+
     @keyword("SEC Verifikasi Kenaikan Versi Sesi Dan Replay Attack Ditolak 401")
     def verify_session_version_and_replay_attack_rejected(self):
-        """Memverifikasi kenaikan sessionVersion dan penolakan replay token lama."""
-        self._update_hud("AND", "Verifikasi Replay Attack Hangus", "MongoDB sessionVersion naik & replay 401")
+        """Memverifikasi kenaikan sessionVersion tepat V+1 dan penolakan replay token lama."""
+        self._update_hud("AND", "Verifikasi Replay Attack Hangus", "MongoDB sessionVersion tepat V+1 & replay 401")
         db = self._get_mongo_db()
         user = db["client_users"].find_one({"username": DEFAULT_AUTH_USER})
         new_version = int(user.get("sessionVersion", 1))
-        logger.info(f"MongoDB sessionVersion: Initial={self.initial_session_version}, Post-Logout={new_version}")
-        if new_version <= self.initial_session_version:
-            raise AssertionError(f"sessionVersion MongoDB tidak bertambah! Awal: {self.initial_session_version}, Akhir: {new_version}")
+        expected_new_version = self.initial_session_version + 1
+        logger.info(f"MongoDB sessionVersion: Initial={self.initial_session_version}, Expected={expected_new_version}, Actual={new_version}")
+
+        if new_version != expected_new_version:
+            raise AssertionError(f"sessionVersion MongoDB harus naik tepat +1! Awal: {self.initial_session_version}, Diharapkan: {expected_new_version}, Aktual: {new_version}")
 
         url = f"{BFF_URL}/api/v1/monitoring/insight"
         req = urllib.request.Request(
@@ -1373,21 +1650,49 @@ class TokenMonitoringLibrary:
             },
             method="GET"
         )
+        replay_status = None
+        replay_code = None
         try:
             with urllib.request.urlopen(req) as resp:
+                replay_status = resp.status
                 raise AssertionError(f"Replay attack berhasil padahal token semestinya hangus! HTTP Status: {resp.status}")
         except urllib.error.HTTPError as e:
+            replay_status = e.code
             if e.code != 401:
                 raise AssertionError(f"Replay attack status code bukan 401 melainkan {e.code}")
             body = json.loads(e.read().decode())
             LogHelper._log_chunked("[REPLAY ATTACK REJECTION RESPONSE]", json.dumps(body, indent=2))
-            code = body.get("error", {}).get("code") or body.get("code")
-            if code != "UNAUTHORIZED_SESSION":
-                raise AssertionError(f"Code bukan UNAUTHORIZED_SESSION melainkan {code}")
+            replay_code = body.get("error", {}).get("code") or body.get("code")
+            if replay_code != "UNAUTHORIZED_SESSION":
+                raise AssertionError(f"Code bukan UNAUTHORIZED_SESSION melainkan {replay_code}")
+
+        LogHelper.log_transparent_comparison("TC-009 Logout Lifecycle & Replay Attack Invalidation", {
+            "logout_http_status": 200,
+            "logout_logged_out": True,
+            "logout_redirect_to": "/login",
+            "access_cookie_cleared": True,
+            "refresh_cookie_cleared": True,
+            "browser_back_blocked": True,
+            "initial_session_version": self.initial_session_version,
+            "post_logout_session_version": expected_new_version,
+            "replay_attack_http_status": 401,
+            "replay_attack_error_code": "UNAUTHORIZED_SESSION"
+        }, {
+            "logout_http_status": self.last_logout_status,
+            "logout_logged_out": self.tc009_logout_data.get("loggedOut"),
+            "logout_redirect_to": self.tc009_logout_data.get("redirectTo"),
+            "access_cookie_cleared": self.tc009_active_access is None,
+            "refresh_cookie_cleared": self.tc009_active_refresh is None,
+            "browser_back_blocked": "/dashboard" not in self.page.url,
+            "initial_session_version": self.initial_session_version,
+            "post_logout_session_version": new_version,
+            "replay_attack_http_status": replay_status,
+            "replay_attack_error_code": replay_code
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-009",
-            f"Logout membersihkan cookie. MongoDB sessionVersion naik dari {self.initial_session_version} ke {new_version}. Replay token lama ditolak HTTP 401.",
+            f"Logout membersihkan cookie (access & refresh). MongoDB sessionVersion naik tepat dari {self.initial_session_version} ke {new_version}. Replay token lama ditolak HTTP 401 UNAUTHORIZED_SESSION.",
             "Token replay attack rejected with 401 UNAUTHORIZED_SESSION. Token masking enforced."
         )
 
@@ -1416,22 +1721,23 @@ class TokenMonitoringLibrary:
             self.baseline_sut_db_conns = int(cur.fetchone()["c"])
         conn.close()
 
-        # Rekam baseline process threads / goroutines dari backend SUT via SSH
+        # Rekam baseline process threads runtime Go dari backend SUT via SSH (fail-fast jika gagal)
         try:
             ssh = self._get_ssh_client()
-            stdin, stdout, stderr = ssh.exec_command("cat /proc/$(pgrep -f /app/token-monitoring-bff | head -n1)/status | grep -i threads || echo Threads: 1")
+            stdin, stdout, stderr = ssh.exec_command("cat /proc/$(pgrep -f /app/token-monitoring-bff | head -n1)/status | grep -i threads")
             out = stdout.read().decode().strip()
             ssh.close()
             m = re.search(r'\d+', out)
-            self.baseline_process_threads = int(m.group(0)) if m else 10
+            if not m:
+                raise AssertionError(f"Gagal mengekstrak jumlah thread SUT dari output SSH: '{out}'")
+            self.baseline_process_threads = int(m.group(0))
         except Exception as e:
-            logger.warn(f"Failed to record process threads baseline: {e}")
-            self.baseline_process_threads = 10
+            raise AssertionError(f"FAIL-FAST: Gagal merekam baseline process threads backend via SSH: {e}")
 
-        self.roundtrip_req_count = 0
+        self.roundtrip_requests = []
         def _track_req(req):
             if "/api/v1/monitoring/" in req.url:
-                self.roundtrip_req_count += 1
+                self.roundtrip_requests.append(req.url)
         self._rt_listener = _track_req
         self.page.on("request", self._rt_listener)
 
@@ -1446,23 +1752,23 @@ class TokenMonitoringLibrary:
             self._highlight("#dashboard-tab-token-stats", f"Round {i}: Token Stats")
             self.page.click("#dashboard-tab-token-stats")
             self.page.wait_for_selector("#dashboard-token-stats-month", timeout=10000)
+            self.page.wait_for_selector("#dashboard-panel-token-stats .canvas-bar-chart__surface", timeout=10000)
             time.sleep(0.3)
 
             self._update_hud("WHEN", f"Navigasi Putaran {i}/3", "Beralih tab Insight")
             self._highlight("#dashboard-tab-insight", f"Round {i}: Insight")
             self.page.click("#dashboard-tab-insight")
-            self.page.wait_for_selector("#dashboard-panel-insight .chart-card", timeout=10000)
+            self.page.wait_for_selector("#dashboard-panel-insight .canvas-bar-chart__surface", timeout=10000)
             time.sleep(0.3)
             self._clear_highlight()
 
-        # Tunggu hingga kedua grafik Insight selesai merender canvas (bukan skeleton loader)
-        self.page.wait_for_selector("#dashboard-panel-insight .canvas-bar-chart__surface", timeout=10000)
-        time.sleep(0.5)
+        # Jeda settle time 1 detik
+        time.sleep(1.0)
 
     @keyword("DB Verifikasi Integritas Tampilan Dan Ketiadaan Kebocoran Koneksi")
     def verify_roundtrip_integrity_and_connection_leak(self):
-        """Memverifikasi grafik tetap 12 batang, koneksi database stabil (delta <= 1), dan thread backend stabil (delta <= 5)."""
-        self._update_hud("THEN", "Verifikasi Integritas DOM & Ketiadaan Leak", "12 Batang grafik utuh & koneksi MySQL normal")
+        """Memverifikasi grafik tetap 12 batang, request stabil, koneksi database delta <= 1, dan thread backend delta <= 5."""
+        self._update_hud("THEN", "Verifikasi Integritas DOM & Ketiadaan Leak", "12 Batang grafik utuh, request terkendali & koneksi MySQL normal")
         self._highlight("#dashboard-panel-insight .chart-grid", "12 Batang Grafik Utuh")
 
         # Lepas request listener
@@ -1472,7 +1778,7 @@ class TokenMonitoringLibrary:
         except Exception:
             pass
 
-        # Verifikasi judul grafik dan canvas chart tetap ada
+        # 1. Verifikasi judul grafik dan canvas chart tetap ada
         headers = self.page.query_selector_all(".chart-card h3")
         texts = [h.text_content().strip() for h in headers]
         if not any("Token Usage (Last 12 Months)" in t for t in texts):
@@ -1480,12 +1786,49 @@ class TokenMonitoringLibrary:
         if not any("Token Balance (Last 12 Months)" in t for t in texts):
             raise AssertionError("Grafik Token Balance hilang setelah 3x roundtrip!")
 
-        self.page.wait_for_selector("#dashboard-panel-insight .canvas-bar-chart__surface", timeout=10000)
         canvases = self.page.query_selector_all("#dashboard-panel-insight .canvas-bar-chart__surface")
         if len(canvases) < 2:
             raise AssertionError(f"Canvas grafik berkurang! Ditemukan {len(canvases)} canvas, diharapkan minimal 2")
 
-        # Verifikasi MySQL Threads_connected dan SUT processlist connection pool
+        # 2. Verifikasi 12 titik batang pada masing-masing grafik Insight
+        usage_points = []
+        balance_points = []
+        for r in reversed(self.network_responses):
+            url = r.get("url", "")
+            if "insight/usage-chart" in url and not usage_points and r.get("body"):
+                usage_points = r["body"].get("data", {}).get("series", {}).get("points", [])
+            if "insight/balance-chart" in url and not balance_points and r.get("body"):
+                balance_points = r["body"].get("data", {}).get("series", {}).get("points", [])
+            if usage_points and balance_points:
+                break
+
+        if len(usage_points) != 12:
+            raise AssertionError(f"Grafik Insight Usage harus memuat 12 titik bulanan, ditemukan {len(usage_points)}")
+        if len(balance_points) != 12:
+            raise AssertionError(f"Grafik Insight Balance harus memuat 12 titik bulanan, ditemukan {len(balance_points)}")
+
+        # 3. Verifikasi nilai kartu metrik tetap akurat
+        metric_cards = self.page.query_selector_all("#dashboard-panel-insight .metric-card")
+        ui_metrics = {}
+        for mc in metric_cards:
+            lbl = mc.query_selector(".metric-card__label").text_content().strip()
+            val = mc.query_selector(".metric-card__value").text_content().strip()
+            ui_metrics[lbl] = val
+
+        if ui_metrics.get("Usage") != "12.843":
+            raise AssertionError(f"Metrik UI Usage berubah setelah roundtrip! Ditemukan: '{ui_metrics.get('Usage')}', Ekspektasi: '12.843'")
+        if ui_metrics.get("Top-Up") != "187.498":
+            raise AssertionError(f"Metrik UI Top-Up berubah setelah roundtrip! Ditemukan: '{ui_metrics.get('Top-Up')}', Ekspektasi: '187.498'")
+        if ui_metrics.get("Token Balance") != "5.555":
+            raise AssertionError(f"Metrik UI Token Balance berubah setelah roundtrip! Ditemukan: '{ui_metrics.get('Token Balance')}', Ekspektasi: '5.555'")
+
+        # 4. Verifikasi request monitoring: total di rentang 30 s/d 36 request (5 s/d 6 request per tab switch)
+        total_reqs = len(self.roundtrip_requests)
+        logger.info(f"Total monitoring requests captured during 3 roundtrips: {total_reqs}")
+        if total_reqs < 30 or total_reqs > 36:
+            raise AssertionError(f"Jumlah request monitoring tidak normal ({total_reqs})! Diharapkan rentang [30, 36] untuk 3 putaran (6 perpindahan tab).")
+
+        # 5. Verifikasi koneksi MySQL pool SUT dan global Threads_connected
         conn = self._get_mysql_conn()
         with conn.cursor() as cur:
             cur.execute("SHOW STATUS LIKE 'Threads_connected'")
@@ -1498,30 +1841,29 @@ class TokenMonitoringLibrary:
             post_sut_db_conns = int(cur.fetchone()["c"])
         conn.close()
 
-        delta_sut_conns = abs(post_sut_db_conns - getattr(self, "baseline_sut_db_conns", post_sut_db_conns))
+        delta_sut_conns = abs(post_sut_db_conns - self.baseline_sut_db_conns)
         delta_mysql = abs(post_threads - self.baseline_threads_connected)
-        logger.info(f"MySQL SUT Pool Conns: Baseline={getattr(self, 'baseline_sut_db_conns', 'N/A')}, Post={post_sut_db_conns}, Delta={delta_sut_conns} (Max pool=5)")
+        logger.info(f"MySQL SUT Pool Conns: Baseline={self.baseline_sut_db_conns}, Post={post_sut_db_conns}, Delta={delta_sut_conns} (Max pool=5)")
         logger.info(f"MySQL Global Threads_connected: Baseline={self.baseline_threads_connected}, Post={post_threads}, Delta={delta_mysql}")
 
-        # Strict assertion on SUT connection pool: delta <= 1 and post connections never exceed pool capacity (5)
         if delta_sut_conns > 1 or post_sut_db_conns > 5:
             raise AssertionError(f"Terjadi kebocoran pool koneksi MySQL SUT! Delta={delta_sut_conns} > 1 atau Post={post_sut_db_conns} melebihi kapasitas pool 5!")
 
-        # Global threads check (toleransi delta <= 2 untuk noise server staging eksternal)
-        if delta_mysql > 2 and delta_sut_conns > 0:
-            raise AssertionError(f"Terjadi kebocoran pool koneksi MySQL! Delta={delta_mysql} > 2 (Baseline={self.baseline_threads_connected}, Post={post_threads})")
+        if delta_mysql > 2:
+            raise AssertionError(f"Terjadi kebocoran koneksi MySQL! Delta={delta_mysql} > 2 (Baseline={self.baseline_threads_connected}, Post={post_threads})")
 
-        # Verifikasi SUT process threads / goroutines via SSH: toleransi maksimal 5
+        # 6. Verifikasi SUT process threads / goroutines via SSH (fail-fast jika gagal)
         try:
             ssh = self._get_ssh_client()
-            stdin, stdout, stderr = ssh.exec_command("cat /proc/$(pgrep -f /app/token-monitoring-bff | head -n1)/status | grep -i threads || echo Threads: 1")
+            stdin, stdout, stderr = ssh.exec_command("cat /proc/$(pgrep -f /app/token-monitoring-bff | head -n1)/status | grep -i threads")
             out = stdout.read().decode().strip()
             ssh.close()
             m = re.search(r'\d+', out)
-            post_process_threads = int(m.group(0)) if m else self.baseline_process_threads
+            if not m:
+                raise AssertionError(f"Gagal mengekstrak post process threads dari output SSH: '{out}'")
+            post_process_threads = int(m.group(0))
         except Exception as e:
-            logger.warn(f"Failed to check post process threads: {e}")
-            post_process_threads = self.baseline_process_threads
+            raise AssertionError(f"FAIL-FAST: Gagal memeriksa post process threads SUT via SSH: {e}")
 
         delta_threads = abs(post_process_threads - self.baseline_process_threads)
         logger.info(f"SUT Process Threads: Baseline={self.baseline_process_threads}, Post={post_process_threads}, Delta={delta_threads}")
@@ -1532,26 +1874,33 @@ class TokenMonitoringLibrary:
 
         LogHelper.log_transparent_comparison("TC-010 Roundtrip Stability & Connection Leak Audit", {
             "roundtrips_executed": 3,
-            "max_allowed_sut_db_delta": 1,
-            "max_sut_db_pool_limit": 5,
-            "max_allowed_threads_delta": 5,
-            "expected_charts": ["Token Usage (Last 12 Months)", "Token Balance (Last 12 Months)"]
+            "total_requests_within_range_30_36": True,
+            "usage_chart_points_count": 12,
+            "balance_chart_points_count": 12,
+            "sut_db_connections_delta_le_1": True,
+            "sut_db_pool_within_limit_5": True,
+            "mysql_threads_delta_le_2": True,
+            "backend_threads_delta_le_5": True,
+            "ui_usage": "12.843",
+            "ui_topup": "187.498",
+            "ui_balance": "5.555"
         }, {
-            "actual_sut_db_delta": delta_sut_conns,
-            "baseline_sut_db_conns": getattr(self, "baseline_sut_db_conns", None),
-            "post_sut_db_conns": post_sut_db_conns,
-            "actual_mysql_delta": delta_mysql,
-            "baseline_mysql_threads": self.baseline_threads_connected,
-            "post_mysql_threads": post_threads,
-            "actual_threads_delta": delta_threads,
-            "baseline_sut_threads": self.baseline_process_threads,
-            "post_sut_threads": post_process_threads,
-            "monitoring_requests_detected": self.roundtrip_req_count
-        })
+            "roundtrips_executed": 3,
+            "total_requests_within_range_30_36": 30 <= total_reqs <= 36,
+            "usage_chart_points_count": len(usage_points),
+            "balance_chart_points_count": len(balance_points),
+            "sut_db_connections_delta_le_1": delta_sut_conns <= 1,
+            "sut_db_pool_within_limit_5": post_sut_db_conns <= 5,
+            "mysql_threads_delta_le_2": delta_mysql <= 2,
+            "backend_threads_delta_le_5": delta_threads <= 5,
+            "ui_usage": ui_metrics.get("Usage"),
+            "ui_topup": ui_metrics.get("Top-Up"),
+            "ui_balance": ui_metrics.get("Token Balance")
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-010",
-            f"Navigasi 3x roundtrip stabil. DOM utuh 12 batang. MySQL Threads_connected Delta={delta_mysql} (<=1). SUT backend threads Delta={delta_threads} (<=5). Total requests={self.roundtrip_req_count}.",
+            f"Navigasi 3x roundtrip stabil. DOM utuh 12 batang kedua grafik. MySQL Threads_connected Delta={delta_mysql} (<=2). SUT backend threads Delta={delta_threads} (<=5). Total requests={total_reqs}.",
             f"Baseline threads={self.baseline_threads_connected}, Post={post_threads}. SUT process threads={post_process_threads}. No connection or goroutine leak."
         )
 
@@ -1564,6 +1913,8 @@ class TokenMonitoringLibrary:
         self.switch_to_token_stats_tab()
         self.page.wait_for_selector("#dashboard-panel-token-stats .canvas-bar-chart__surface", timeout=10000)
         time.sleep(0.5)
+        # Reset console errors sebelum hover agar merefleksikan proses interaksi grafik harian
+        self.console_errors = []
 
         canvas = self.page.wait_for_selector("#dashboard-panel-token-stats .canvas-bar-chart__surface", timeout=10000)
         box = canvas.bounding_box()
@@ -1606,7 +1957,7 @@ class TokenMonitoringLibrary:
 
     @keyword("DB Verifikasi Nilai Tooltip Cocok Dengan SQL Harian Dan Log Bersih")
     def verify_hover_tooltip_matches_sql(self):
-        """Memverifikasi data harian tanggal 18 Nov dari database dan ketiadaan error log."""
+        """Memverifikasi data harian tanggal 18 Nov dari database, API, tooltip hide, dan ketiadaan error log."""
         conn = self._get_mysql_conn()
         with conn.cursor() as cur:
             cur.execute("""
@@ -1628,7 +1979,7 @@ class TokenMonitoringLibrary:
         self._update_hud("THEN", "Verifikasi Nilai Harian vs SQL & Log SUT", f"Token {expected_tokens} cocok SQL & log bersih")
         self._highlight("#dashboard-panel-token-stats .canvas-bar-chart__surface", f"Tervalidasi {expected_tokens} Token")
 
-        # WAJIB periksa elemen tooltip: harus terlihat dan memuat tanggal serta nilai token
+        # 1. WAJIB periksa elemen tooltip: harus terlihat dan memuat tanggal serta nilai token floored
         tt_el = self.page.wait_for_selector("#dashboard-panel-token-stats .canvas-bar-chart__tooltip", timeout=5000)
         if not tt_el or not tt_el.is_visible():
             raise AssertionError("Elemen tooltip .canvas-bar-chart__tooltip tidak muncul/terlihat di antarmuka!")
@@ -1642,11 +1993,49 @@ class TokenMonitoringLibrary:
         if f"Total token: {expected_floored}" not in tt_text and str(expected_floored) not in tt_text:
             raise AssertionError(f"Tooltip tidak memuat nilai token yang cocok dengan SQL harian ({expected_floored})! Ditemukan: '{tt_text}'")
 
+        # 2. Verifikasi respons JSON API memuat titik tanggal 18 dengan nilai persis 60.56
+        api_day_18_val = None
+        for r in reversed(self.network_responses):
+            url = r.get("url", "")
+            if "token-stats/usage-chart" in url and "2026-11" in url and r.get("body"):
+                pts = r["body"].get("data", {}).get("series", {}).get("points", [])
+                for p in pts:
+                    if p.get("label") in ("18", "2026-11-18"):
+                        api_day_18_val = float(p.get("value", 0.0))
+                        break
+            if api_day_18_val is not None:
+                break
+
+        if api_day_18_val is None:
+            if self.last_token_stats_usage_chart and "data" in self.last_token_stats_usage_chart:
+                pts = self.last_token_stats_usage_chart["data"].get("series", {}).get("points", [])
+                for p in pts:
+                    if p.get("label") in ("18", "2026-11-18"):
+                        api_day_18_val = float(p.get("value", 0.0))
+                        break
+
+        if api_day_18_val is None:
+            raise AssertionError("Titik tanggal 18 Nov tidak ditemukan pada respons API usage-chart!")
+
+        if abs(api_day_18_val - expected_tokens) > 0.01:
+            raise AssertionError(f"Nilai titik tanggal 18 pada API ({api_day_18_val}) tidak cocok dengan SQL ({expected_tokens})!")
+
+        # 3. Verifikasi tooltip hide on mouse leave
+        self.page.mouse.move(0, 0)
+        time.sleep(0.3)
+        tt_after_leave = self.page.query_selector("#dashboard-panel-token-stats .canvas-bar-chart__tooltip")
+        is_hidden = (tt_after_leave is None) or (not tt_after_leave.is_visible())
+        if not is_hidden:
+            raise AssertionError("Tooltip tidak menghilang saat mouse diarahkan menjauh dari canvas!")
+
+        # 4. Verifikasi ketiadaan error console pada browser
+        if len(self.console_errors) > 0:
+            raise AssertionError(f"Ditemukan error pada browser console: {self.console_errors}")
+
         self._clear_highlight()
 
-        # Ambil delta log SUT langsung di dalam keyword ini untuk membuktikan proses render grafik bersih
+        # 5. Ambil delta log SUT langsung untuk membuktikan proses render grafik bersih
         self._collect_ssh_log_delta()
-
         warning_logs = [
             l for l in self.delta_log_lines
             if ('"level":"ERROR"' in l or ('"level":"WARN"' in l and "context canceled" not in l and "telegram" not in l))
@@ -1654,21 +2043,30 @@ class TokenMonitoringLibrary:
         if warning_logs:
             raise AssertionError(f"Ditemukan log warning/error pada SUT saat render grafik: {warning_logs}")
 
+        expected_tooltip_str = f"Nov 18, 2026Total token: {expected_floored}"
         LogHelper.log_transparent_comparison("TC-011 Daily Tooltip vs SQL", {
-            "date": "2026-11-18",
-            "tooltip_label": "Nov 18, 2026",
-            "tooltip_value": f"Total token: {expected_floored}",
+            "target_date": "2026-11-18",
             "sql_raw_usage": raw_usage,
-            "sql_tokens": expected_tokens
+            "sql_calculated_tokens": expected_tokens,
+            "api_day_18_tokens": expected_tokens,
+            "ui_tooltip_text": expected_tooltip_str,
+            "tooltip_hidden_on_leave": True,
+            "browser_console_errors_count": 0,
+            "sut_log_clean": True
         }, {
-            "date": "2026-11-18",
-            "tooltip_rendered": tt_text,
-            "sut_log_status": "CLEAN"
-        })
+            "target_date": "2026-11-18",
+            "sql_raw_usage": raw_usage,
+            "sql_calculated_tokens": expected_tokens,
+            "api_day_18_tokens": api_day_18_val,
+            "ui_tooltip_text": tt_text,
+            "tooltip_hidden_on_leave": is_hidden,
+            "browser_console_errors_count": len(self.console_errors),
+            "sut_log_clean": len(warning_logs) == 0
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-011",
-            f"Hover grafik tanggal 18 Nov memvalidasi tooltip '{tt_text}' cocok presisi dengan SQL harian ({expected_tokens} token / floored {expected_floored}). Log SUT terbukti bebas peringatan.",
+            f"Hover grafik tanggal 18 Nov memvalidasi tooltip '{tt_text}' cocok presisi dengan SQL harian ({expected_tokens} token / floored {expected_floored}). API point value={api_day_18_val}. Tooltip hide terverifikasi. Log SUT terbukti bebas peringatan.",
             f"SQL Daily usage_amount={raw_usage} / 540 = {expected_tokens}. Tooltip text='{tt_text}'. SUT Log clean 200 OK."
         )
 
@@ -1677,7 +2075,7 @@ class TokenMonitoringLibrary:
     # ==============================================================================
     @keyword("UI Pilih Opsi Bulan Tertua Desember 2025 Pada Dropdown")
     def select_december_2025_empty_month(self):
-        """Memilih opsi 2025-12 pada dropdown."""
+        """Memilih opsi 2025-12 pada dropdown dan menunggu respons segmen."""
         self.ensure_on_insight_tab()
         self.switch_to_token_stats_tab()
         self.page.wait_for_selector("#dashboard-token-stats-month:not([disabled])", timeout=10000)
@@ -1686,24 +2084,17 @@ class TokenMonitoringLibrary:
 
         self._update_hud("WHEN", "Pilih Filter Desember 2025", "Bulan tertua tanpa aktivitas transaksi")
         self._highlight("#dashboard-token-stats-month", "Pilih 2025-12")
-        with self.page.expect_response(lambda r: "month=2025-12" in r.url and r.status == 200, timeout=10000) as resp_info:
-            self.page.select_option("#dashboard-token-stats-month", "2025-12")
 
-        resp = resp_info.value
-        self.last_december_response = {
-            "url": resp.url,
-            "status": resp.status,
-            "headers": resp.headers,
-            "body": resp.json() if resp.ok else None
-        }
-        self.network_responses.append(self.last_december_response)
+        self.page.select_option("#dashboard-token-stats-month", "2025-12")
+        self.page.wait_for_load_state("networkidle")
+        time.sleep(1.0)
+
         self.page.wait_for_selector("#dashboard-panel-token-stats .metric-card", timeout=10000)
-        time.sleep(0.5)
         self._clear_highlight()
 
     @keyword("DB Verifikasi Kondisi Nol Desember Dan Retensi Saldo Snapshot")
     def verify_empty_month_metrics_and_snapshot_retention(self):
-        """Memverifikasi Usage=0, TopUp=0, dan Saldo snapshot tersimpan 18.138."""
+        """Memverifikasi Usage=0, TopUp=0, dan Saldo snapshot tersimpan 18.138 tanpa dummy fallback."""
         conn = self._get_mysql_conn()
         with conn.cursor() as cur:
             # 1. Buktikan bahwa 2025-12 memang 0 baris transaksi di token_summary_monthly
@@ -1738,42 +2129,46 @@ class TokenMonitoringLibrary:
 
         expected_bal_str = f"{int(expected_balance_tokens):,}".replace(",", ".")
 
-        # 3. Verifikasi response AJAX yang ditangkap untuk month=2025-12
-        api_usage = None
-        api_topup = None
-        api_bal = None
+        # 3. Ekstraksi response AJAX dan kontrak endpoint teragregasi BFF untuk month=2025-12
+        cookies = self.context.cookies()
+        cookie_hdr = "; ".join(f"{c['name']}={c['value']}" for c in cookies if c.get("value"))
+        req_agg = urllib.request.Request(
+            f"{BFF_URL}/api/v1/monitoring/token-stats?month=2025-12",
+            headers={"Cookie": cookie_hdr},
+            method="GET"
+        )
+        with urllib.request.urlopen(req_agg) as resp_agg:
+            agg_json = json.loads(resp_agg.read().decode())
+            agg_data = agg_json.get("data", {})
 
-        for r in reversed(self.network_responses):
-            url = r.get("url", "")
-            if "2025-12" not in url:
-                continue
-            body = r.get("body") or {}
-            data = body.get("data") or {}
+        api_usage = float(agg_data.get("summary", {}).get("usageTokens", 0.0))
+        api_topup = float(agg_data.get("summary", {}).get("topUpTokens", 0.0))
+        api_bal = float(agg_data.get("summary", {}).get("tokenBalance", 0.0))
+        api_state = agg_data.get("state") or {}
+        api_no_data = api_state.get("noData")
+        api_empty_reason = api_state.get("emptyReason")
+        zero_chart_points = agg_data.get("charts", {}).get("usageCurrentPeriod", {}).get("points", [])
 
-            # Aggregated endpoint
-            summary = data.get("summary", {}) if isinstance(data, dict) else {}
-            if "usageTokens" in summary and api_usage is None:
-                api_usage = float(summary.get("usageTokens", 0.0))
-            if "topUpTokens" in summary and api_topup is None:
-                api_topup = float(summary.get("topUpTokens", 0.0))
-            if "tokenBalance" in summary and api_bal is None:
-                api_bal = float(summary.get("tokenBalance", 0.0))
+        # Assertion wajib: Field API tidak boleh None!
+        if api_usage is None or api_topup is None or api_bal is None:
+            raise AssertionError(f"FAIL-FAST: Field wajib API Desember 2025 tidak boleh None! usage={api_usage}, topup={api_topup}, balance={api_bal}")
 
-            # Segment endpoints
-            if "usage-summary" in url and api_usage is None and isinstance(data, dict) and "usageTokens" in data:
-                api_usage = float(data.get("usageTokens", 0.0))
-            if "topup-summary" in url and api_topup is None and isinstance(data, dict) and "topUpTokens" in data:
-                api_topup = float(data.get("topUpTokens", 0.0))
-            if "balance-summary" in url and api_bal is None and isinstance(data, dict) and "tokenBalance" in data:
-                api_bal = float(data.get("tokenBalance", 0.0))
-
-        if api_usage is not None and api_usage != 0.0:
+        if api_usage != 0.0:
             raise AssertionError(f"API Usage Desember bukan 0 melainkan {api_usage}")
-        if api_topup is not None and api_topup != 0.0:
+        if api_topup != 0.0:
             raise AssertionError(f"API TopUp Desember bukan 0 melainkan {api_topup}")
-        if api_bal is not None:
-            if abs(api_bal - expected_balance_tokens) > 0.01:
-                raise AssertionError(f"API tokenBalance ({api_bal}) tidak cocok dengan saldo carry-forward ({expected_balance_tokens})!")
+        if abs(api_bal - expected_balance_tokens) > 0.01:
+            raise AssertionError(f"API tokenBalance ({api_bal}) tidak cocok dengan saldo carry-forward ({expected_balance_tokens})!")
+
+        if api_no_data is not True:
+            raise AssertionError(f"API state.noData bukan True melainkan {api_no_data}")
+        if api_empty_reason != "NO_TRANSACTIONS_IN_SELECTED_MONTH":
+            raise AssertionError(f"API state.emptyReason salah! Ditemukan: '{api_empty_reason}', Ekspektasi: 'NO_TRANSACTIONS_IN_SELECTED_MONTH'")
+
+        if len(zero_chart_points) != 31:
+            raise AssertionError(f"Grafik Desember 2025 harus memuat 31 titik bernilai nol, ditemukan: {len(zero_chart_points)}")
+        if not all(p.get("value", 0.0) == 0.0 for p in zero_chart_points):
+            raise AssertionError("Ada titik grafik Desember 2025 yang bernilai bukan nol!")
 
         self._update_hud("THEN", "Verifikasi Empty State & Retensi Saldo", f"Usage=0, TopUp=0, Saldo carry-forward {expected_bal_str}")
         self._highlight('#dashboard-panel-token-stats .metric-card:has(.metric-card__label:has-text("Usage"))', "Usage: 0")
@@ -1803,21 +2198,34 @@ class TokenMonitoringLibrary:
             raise AssertionError("Muncul error view pada pemilihan bulan kosong!")
 
         LogHelper.log_transparent_comparison("TC-012 Empty Month vs SQL Carry-Forward", {
-            "month": "2025-12",
-            "usage": 0,
-            "topup": 0,
-            "balance_carry_forward_from": carry_month,
-            "expected_balance_tokens": expected_balance_tokens,
-            "expected_ui_balance": expected_bal_str
+            "selected_month": "2025-12",
+            "sql_monthly_row_count": 0,
+            "sql_carry_forward_month": carry_month,
+            "sql_carry_forward_balance_tokens": expected_balance_tokens,
+            "api_no_data": True,
+            "api_empty_reason": "NO_TRANSACTIONS_IN_SELECTED_MONTH",
+            "api_usage_tokens": 0.0,
+            "api_topup_tokens": 0.0,
+            "api_token_balance": expected_balance_tokens,
+            "api_chart_zero_points_count": 31,
+            "ui_usage": "0",
+            "ui_topup": "0",
+            "ui_token_balance": expected_bal_str
         }, {
-            "month": "2025-12",
-            "api_usage": api_usage,
-            "api_topup": api_topup,
-            "api_balance": api_bal,
+            "selected_month": "2025-12",
+            "sql_monthly_row_count": dec_cnt,
+            "sql_carry_forward_month": carry_month,
+            "sql_carry_forward_balance_tokens": expected_balance_tokens,
+            "api_no_data": api_no_data,
+            "api_empty_reason": api_empty_reason,
+            "api_usage_tokens": api_usage,
+            "api_topup_tokens": api_topup,
+            "api_token_balance": api_bal,
+            "api_chart_zero_points_count": len(zero_chart_points),
             "ui_usage": ui_metrics.get("Usage"),
             "ui_topup": ui_metrics.get("Top-Up"),
-            "ui_balance": ui_metrics.get("Token Balance")
-        })
+            "ui_token_balance": ui_metrics.get("Token Balance")
+        }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-012",

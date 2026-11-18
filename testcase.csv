@@ -53,7 +53,7 @@ INPUT DATA (SECURE MASKED):
    - Koleksi MongoDB token_monitoring.client_users untuk username ""user.mahkamahagung"" terbukti memperbarui field lastLoginAt dengan timestamp UTC/ISO terkini pada saat login dilakukan.
 4. Lapisan 4 - [LOG CONTRACT]:
    Log SUT pada file /var/opt/MA/backend/log/token-monitoring-bff.log mencatat event persis:
-   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""POST"",""path"":""/api/v1/auth/login"",""requestType"":""login"",""sourceSystem"":""mongodb-auth"",""statusCode"":200,""userKey"":""user-ma-stg-001""}","Login berhasil dialihkan ke /dashboard?tab=insight, cookie HttpOnly terbentuk, dan MongoDB lastLoginAt terbarui.",PASS,HTTP 200 POST /api/v1/auth/login. LastLoginAt: 2026-11-18 19:34:41.221000. Cookies secure verified.,Pengujian alur otentikasi utama pengguna Web UI dengan verifikasi atribut keamanan cookie dan database.
+   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""POST"",""path"":""/api/v1/auth/login"",""requestType"":""login"",""sourceSystem"":""mongodb-auth"",""statusCode"":200,""userKey"":""user-ma-stg-001""}","Login berhasil dialihkan ke /dashboard?tab=insight, cookie HttpOnly terbentuk, dan MongoDB lastLoginAt terbarui.",PASS,HTTP 200 POST /api/v1/auth/login. LastLoginAt: 2026-11-18 20:31:36.861000. Cookies secure verified.,Pengujian alur otentikasi utama pengguna Web UI dengan verifikasi atribut keamanan cookie dan database.
 TC-002,Memverifikasi tab Insight menampilkan ringkasan penggunaan token dan grafik 12 bulan terakhir dengan validasi komparasi independen SQL berbatas rentang eksplisit,Verifikasi tab Insight memuat metrik ringkasan dan grafik batang untuk rentang waktu 12 bulan dengan akurasi 100% terhadap agregasi SQL berbatas tanggal jelas,Tab Insight - Validasi visualisasi 12 bulan riwayat penggunaan dan saldo token Mahkamah Agung,P0 - Critical,"1. Masuk ke aplikasi menggunakan akun pengguna monitoring yang valid.
 2. Akses halaman dashboard dan pastikan tab Insight aktif.
 3. Pantau intersepsi jaringan untuk pemanggilan endpoint data insight.
@@ -66,36 +66,34 @@ TC-002,Memverifikasi tab Insight menampilkan ringkasan penggunaan token dan graf
 3. Tabel MySQL token_sync.token_summary_monthly memiliki data agregasi 12 bulan terakhir (Desember 2025 s/d November 2026).
 4. MongoDB clients.fixedPricePerToken bernilai 540.
 
-FORMULA & TARGET DATA SNAPSHOT (EXPLICIT BOUNDS):
+FORMULA & TARGET DATA SNAPSHOT (4-LAYER CONTRACT):
 - Formula: Token = SQL SUM(amount) / 540
 - Rentang Tanggal Eksplisit: BETWEEN '2025-12' AND '2026-11'
-- Ekspektasi Metric Usage: 6.935.637,10 / 540 = 12.843,77
-- Ekspektasi Metric Top-Up: 101.249.397,00 / 540 = 187.498,88
-- Ekspektasi Metric Token Balance: 3.000.004,00 / 540 = 5.555,56 (+81,99%)","EXPECTED RESULT (4-LAPISAN PEMBUKTIAN):
+- Ekspektasi Lapisan 1 (UI DOM - Floored Indonesian Grouping): Usage '12.843', Top-Up '187.498', Balance '5.555' (+81,99%)
+- Ekspektasi Lapisan 2 & 3 (API & SQL Exact 2-Decimal Floats): Usage 12843.77, Top-Up 187498.88, Balance 5555.56 (+81.99%)","EXPECTED RESULT (4-LAPISAN PEMBUKTIAN):
 1. Lapisan 1 - Web UI DOM & State:
    - Judul kartu grafik penggunaan token menampilkan teks persis: ""Token Usage (Last 12 Months)"".
    - Judul kartu grafik saldo token menampilkan teks persis: ""Token Balance (Last 12 Months)"".
    - Kedua grafik masing-masing memuat tepat 12 elemen batang bulanan (Desember 2025 s/d November 2026).
-   - Kartu metrik ""Usage"" menampilkan nilai agregasi terformat ""12.843,77"".
-   - Kartu metrik ""Top-Up"" menampilkan nilai agregasi terformat ""187.498,88"".
-   - Kartu metrik ""Token Balance"" menampilkan saldo terkini ""5.555,56"" dengan persentase perubahan ""+81,99%"".
+   - Kartu metrik ""Usage"" menampilkan nilai bilangan bulat terformat: ""12.843"" (floored formatTokenValue).
+   - Kartu metrik ""Top-Up"" menampilkan nilai bilangan bulat terformat: ""187.498"" (floored formatTokenValue).
+   - Kartu metrik ""Token Balance"" menampilkan saldo terkini ""5.555"" (floored formatTokenValue) dengan badge perubahan ""+81,99%"".
 2. Lapisan 2 - Network Interception & Contract:
-   - Intersep request GET /api/v1/monitoring/insight menghasilkan response HTTP 200 OK.
-   - Payload JSON response memuat struktur:
-     * totals.usageTokens = 12843.77
-     * totals.topUpTokens = 187498.88
-     * balance.currentTokens = 5555.56
-     * balance.changePct = 81.99
-     * charts.usageMonthly.points memuat tepat 12 objek bulan (2025-12 hingga 2026-11).
+   - Intersep request GET /api/v1/monitoring/insight (atau segmen-segmennya) menghasilkan response HTTP 200 OK.
+   - Payload JSON response memuat nilai eksak non-None:
+     * usageTokens = 12843.77
+     * topUpTokens = 187498.88
+     * tokenBalance = 5555.56
+     * growthPercentage = 81.99
+     * series points memuat tepat 12 objek bulanan (2025-12 hingga 2026-11) pada kedua grafik usage dan balance.
 3. Lapisan 3 - Backend DB Verification (Strict SQL Matching with Explicit Bounds):
    - Kueri SQL independen pada database MySQL token_sync dengan batas rentang eksplisit:
-     * SELECT SUM(usage_amount)/540 FROM token_summary_monthly WHERE client_key='mahkamah-agung' AND summary_month BETWEEN '2025-12' AND '2026-11' -> bernilai persis 12843.77 (cocok 100% dengan UI dan API, terlindung dari kontaminasi data masa depan).
-     * SELECT SUM(topup_amount)/540 FROM token_summary_monthly WHERE client_key='mahkamah-agung' AND summary_month BETWEEN '2025-12' AND '2026-11' -> bernilai persis 187498.88 (cocok 100% dengan UI dan API).
-     * SELECT last_balance/540 FROM token_account_snapshot WHERE account_number='2021041008976462' -> bernilai persis 5555.56 (cocok 100% dengan UI dan API).
+     * SELECT SUM(usage_amount)/540 FROM token_summary_monthly WHERE client_key='mahkamah-agung' AND summary_month BETWEEN '2025-12' AND '2026-11' -> bernilai persis 12843.77.
+     * SELECT SUM(topup_amount)/540 FROM token_summary_monthly WHERE client_key='mahkamah-agung' AND summary_month BETWEEN '2025-12' AND '2026-11' -> bernilai persis 187498.88.
+     * SELECT last_balance/540 FROM token_account_snapshot WHERE account_number='2021041008976462' -> bernilai persis 5555.56.
 4. Lapisan 4 - [LOG CONTRACT]:
    Log SUT mencatat event query insight dari tabel ringkasan MySQL:
-   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/insight"",""requestType"":""insight"",""sourceSystem"":""summary-mysql"",""statusCode"":200,""userKey"":""user-ma-stg-001""}
-   Durasi eksekusi upstreamDurationMs terbukti di bawah 100ms, membuktikan query dilayani oleh tabel ringkasan terindeks.","Insight memuat 12 bulan. Metrik tervalidasi 3-lapisan: UI Usage=12.843 (API 12843.77), TopUp=187.498 (API 187498.88), Balance=5.555 (API 5555.56), Growth=Token change month-over-month increased by 81.99 percent.+81,99%.",PASS,"SQL Usage=12843.77, TopUp=187498.88, Balance=5555.56. SourceSystem: summary-mysql.",Verifikasi pemenuhan Logic Update U-01 dan U-02 dengan batas rentang SQL eksplisit (BETWEEN) untuk mencegah data anomali.
+   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/insight"",""requestType"":""insight"",""sourceSystem"":""summary-mysql"",""statusCode"":200,""userKey"":""user-ma-stg-001""}","Insight memuat 12 bulan. Metrik tervalidasi 3-lapisan: UI Usage=12.843 (API 12843.77), TopUp=187.498 (API 187498.88), Balance=5.555 (API 5555.56), Growth=Token change month-over-month increased by 81.99 percent.+81,99%.",PASS,"SQL Usage=12843.77, TopUp=187498.88, Balance=5555.56. SourceSystem: summary-mysql.",Verifikasi pemenuhan Logic Update U-01 dan U-02 dengan batas rentang SQL eksplisit (BETWEEN) untuk mencegah data anomali.
 TC-003,Memverifikasi tab Token Stats menampilkan dropdown berisi 12 pilihan bulan terurut serta rincian transaksi bulan berjalan dengan validasi SQL daftar bulan,Verifikasi tab Token Stats memuat daftar 12 bulan pada dropdown dan grafik harian bulan berjalan yang terbukti konsisten dengan basis data,Tab Token Stats - Validasi opsi dropdown 12 bulan dan visualisasi transaksi harian bulan November 2026,P0 - Critical,"1. Dari halaman dashboard, klik tab navigasi bertuliskan Token Stats.
 2. Pantau intersepsi jaringan untuk pemanggilan endpoint token-stats.
 3. Periksa status keaktifan tab Token Stats dan visibilitas kontrol dropdown bulan.
@@ -105,34 +103,33 @@ TC-003,Memverifikasi tab Token Stats menampilkan dropdown berisi 12 pilihan bula
 7. Verifikasi kartu metrik ringkasan dan 30 batang grafik harian untuk bulan berjalan (November 2026).","BEFORE:
 1. User telah login dan berada di dashboard.
 2. MySQL token_sync memiliki data harian untuk bulan berjalan (November 2026).
-3. MySQL token_sync memiliki data bulanan untuk 12 bulan terakhir (2025-12 s/d 2026-11).
+3. MySQL token_sync memiliki 11 bulan aktif (2026-01 s/d 2026-11) dan 0 baris pada bulan 2025-12 (empty state).
+4. SUT window generator menghasilkan rentang 12 bulan (2026-11 s/d 2025-12).
 
 TARGET DATA SNAPSHOT:
 - Bulan Default: 2026-11 (November 2026)
-- Ekspektasi Metric Usage November: 374.075,00 / 540 = 692,73
-- Ekspektasi Metric Top-Up November: 6.171.132,00 / 540 = 11.428,02
-- Ekspektasi Metric Token Balance: 3.000.004,00 / 540 = 5.555,56 (+81,99%)
+- Ekspektasi Lapisan 1 (UI DOM): Usage '692', Top-Up '11.428', Saldo '5.555'
+- Ekspektasi Lapisan 2 & 3 (API & SQL Exact 2-Decimal Floats): Usage 692.73, Top-Up 11428.02, Saldo 5555.56
 - Jumlah Hari Kalender November: 30 hari","EXPECTED RESULT (4-LAPISAN PEMBUKTIAN):
 1. Lapisan 1 - Web UI DOM & State:
    - Tab navigasi ""Token Stats"" berganti status menjadi aktif (is-active).
    - Kontrol dropdown dengan id ""dashboard-token-stats-month"" muncul pada toolbar dashboard.
    - Dropdown memuat tepat 12 opsi bulan yang terurut turun kronologis dari November 2026 hingga Desember 2025.
    - Opsi default yang terpilih otomatis adalah bulan berjalan (""November 2026"" / value ""2026-11"").
-   - Kartu metrik menampilkan nilai ringkasan bulan berjalan: Usage ""692,73"", Top-Up ""11.428,02"", Saldo ""5.555,56"".
-   - Grafik ""Token Usage (Current Period)"" dan ""Token Balance (Current Period)"" masing-masing menampilkan 30 batang harian (tanggal 1 s/d 30).
+   - Kartu metrik menampilkan nilai ringkasan bulan berjalan terformat floored: Usage ""692"", Top-Up ""11.428"", Saldo ""5.555"".
+   - Grafik ""Token Usage (Current Period)"" menampilkan tepat 30 batang harian (tanggal 1 s/d 30 November 2026).
 2. Lapisan 2 - Network Interception & Contract:
-   - Intersep request GET /api/v1/monitoring/token-stats menghasilkan response HTTP 200 OK.
+   - Intersep request GET /api/v1/monitoring/token-stats (atau segmennya) menghasilkan response HTTP 200 OK.
    - Payload JSON response memuat:
      * selectedMonth = ""2026-11""
      * availableMonths memuat array 12 string terurut turun kronologis persis: [""2026-11"", ""2026-10"", ""2026-09"", ""2026-08"", ""2026-07"", ""2026-06"", ""2026-05"", ""2026-04"", ""2026-03"", ""2026-02"", ""2026-01"", ""2025-12""]
-     * totals.usageTokens = 692.73, totals.topUpTokens = 11428.02, balance.currentTokens = 5555.56
-     * charts.usageCurrentPeriod.points memuat 30 elemen hari.
+     * usageTokens = 692.73, topUpTokens = 11428.02, tokenBalance = 5555.56
+     * usageCurrentPeriod series points memuat tepat 30 elemen hari kalender November.
 3. Lapisan 3 - Backend DB Verification (Strict SQL Matching):
-   - Kueri SQL independen: SELECT summary_month FROM token_summary_monthly WHERE account_number='2021041008976462' AND summary_month BETWEEN '2025-12' AND '2026-11' ORDER BY summary_month DESC menghasilkan 11 bulan aktif (Jan 2026 s/d Nov 2026) dan COUNT(*) Des 2025 = 0; API availableMonths dan UI dropdown melengkapi 12 opsi kalender kronologis hingga 2025-12.
-   - Kueri SQL independen harian November: SELECT SUM(usage_amount)/540 FROM token_summary_daily WHERE account_number='2021041008976462' AND summary_date LIKE '2026-11%' bernilai 692.73 (cocok dengan kartu metrik UI).
+   - Kueri SQL independen: SELECT DISTINCT DATE_FORMAT(summary_month, '%Y-%m') FROM token_summary_monthly WHERE account_number='2021041008976462' AND summary_month >= '2025-12-01' -> membuktikan 11 bulan aktif (2026-01 s/d 2026-11) dan 0 baris pada 2025-12.
+   - Kueri SQL agregasi harian November: SELECT SUM(usage_amount)/540 FROM token_summary_daily WHERE account_number='2021041008976462' AND summary_date LIKE '2026-11%' -> bernilai persis 692.73.
 4. Lapisan 4 - [LOG CONTRACT]:
-   Log SUT mencatat event pengambilan data token-stats dari MySQL summary:
-   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/token-stats"",""requestType"":""tokenStats"",""sourceSystem"":""summary-mysql"",""statusCode"":200,""userKey"":""user-ma-stg-001""}",Token Stats memuat 12 opsi bulan terurut kronologis (2026-11 s/d 2025-12 memuat 2026-05). Metrik November: Usage=692 (Float=692.73).,PASS,"SQL active months verified: ['2026-11', '2026-10', '2026-09', '2026-08', '2026-07', '2026-06', '2026-05', '2026-04', '2026-03', '2026-02', '2026-01'] (11 active, 2025-12 empty). November Daily Usage=692.73.",Verifikasi pemenuhan Logic Update U-01 dan U-03 pada tab Token Stats dengan koreksi urutan kronologis 2026-05.
+   Log SUT mencatat event request_completed tokenStats berdurasi wajar (<100ms).",Token Stats memuat 12 opsi bulan terurut kronologis (2026-11 s/d 2025-12 memuat 2026-05). Metrik November: Usage=692 (Float=692.73).,PASS,"SQL active months verified: ['2026-11', '2026-10', '2026-09', '2026-08', '2026-07', '2026-06', '2026-05', '2026-04', '2026-03', '2026-02', '2026-01'] (11 active, 2025-12 empty). November Daily Usage=692.73.",Verifikasi pemenuhan Logic Update U-01 dan U-03 pada tab Token Stats dengan koreksi urutan kronologis 2026-05.
 TC-004,"Memverifikasi interaktivitas filter dropdown Token Stats saat berganti ke bulan Oktober 2026, validasi kontrak parameter query, dan pembersihan residu data bulan sebelumnya",Verifikasi perubahan pilihan bulan pada dropdown memicu request AJAX dengan parameter yang tepat dan memperbarui metrik serta grafik tanpa meninggalkan residu,Tab Token Stats - Ganti pilihan bulan ke Oktober 2026 dan verifikasi pembaruan data,P1 - High,"1. Pastikan pengguna berada di tab Token Stats dengan data default bulan November 2026.
 2. Pantau intersepsi jaringan untuk mendeteksi request AJAX baru saat dropdown diubah.
 3. Klik elemen dropdown Select Month pada toolbar dan pilih opsi ""Oktober 2026"".
@@ -140,36 +137,32 @@ TC-004,"Memverifikasi interaktivitas filter dropdown Token Stats saat berganti k
 5. Verifikasi bahwa halaman tidak melakukan full page reload.
 6. Lakukan kueri SQL independen pada tabel token_summary_monthly dan token_summary_daily untuk bulan Oktober 2026 (2026-10).
 7. Bandingkan nilai metrik dan jumlah batang grafik pada UI dengan hasil kueri SQL Oktober 2026, serta pastikan tidak ada nilai November yang tertinggal.","BEFORE:
-1. Tab Token Stats sedang aktif dan menampilkan data default bulan berjalan (November 2026: Usage 692,73, Top-Up 11.428,02, 30 batang).
-2. Tabel MySQL token_sync memiliki data harian dan bulanan untuk Oktober 2026 (2026-10).
+1. Pengguna berada di tab Token Stats pada bulan November 2026.
+2. Nilai metrik awal November tercatat: Usage '692' (API: 692.73), Top-Up '11.428' (API: 11428.02), Saldo '5.555' (API: 5555.56).
+3. Database MySQL token_sync memiliki data harian dan bulanan lengkap untuk bulan Oktober 2026.
 
-TARGET DATA SNAPSHOT OKTOBER 2026:
-- Bulan Pilihan: 2026-10 (Oktober 2026)
-- Ekspektasi Metric Usage Oktober: 733.032,00 / 540 = 1.357,47
-- Ekspektasi Metric Top-Up Oktober: 7.565.687,00 / 540 = 14.010,53
-- Ekspektasi Metric Saldo Oktober: 1.648.470,00 / 540 = 3.052,72 (-6,80%)
+TARGET DATA SNAPSHOT (OCTOBER 2026):
+- Formula: Nilai SQL / 540
+- Ekspektasi Lapisan 1 (UI DOM - Floored): Usage '1.357', Top-Up '14.010', Saldo '3.052'
+- Ekspektasi Lapisan 2 & 3 (API & SQL Exact Floats): Usage 1357.47, Top-Up 14010.53, Saldo 3052.72
 - Jumlah Hari Kalender Oktober: 31 hari","EXPECTED RESULT (4-LAPISAN PEMBUKTIAN):
 1. Lapisan 1 - Web UI DOM & State:
    - Nilai dropdown terpilih berganti menjadi ""Oktober 2026"" (value=""2026-10"").
-   - Seluruh metrik bulan November dibersihkan dan digantikan nilai Oktober:
-     * Kartu metrik ""Usage"" berubah dari ""692,73"" menjadi ""1.357,47"".
-     * Kartu metrik ""Top-Up"" berubah dari ""11.428,02"" menjadi ""14.010,53"".
-     * Kartu metrik ""Token Balance"" berubah dari ""5.555,56"" menjadi ""3.052,72"" dengan indikator perubahan ""-6,80%"".
-   - Grafik batang harian berubah dari 30 batang (November) menjadi 31 batang harian (tanggal 1 hingga 31 Oktober 2026).
+   - Seluruh metrik bulan November dibersihkan (residue '692' hilang) dan digantikan nilai Oktober terformat:
+     * Kartu metrik ""Usage"" berubah menjadi ""1.357"" (floored formatTokenValue).
+     * Kartu metrik ""Top-Up"" berubah menjadi ""14.010"" (floored formatTokenValue).
+     * Kartu metrik ""Token Balance"" berubah menjadi ""3.052"" (floored formatTokenValue) dengan badge perubahan ""-6,80%"".
+   - Grafik batang harian berubah menjadi 31 batang harian (tanggal 1 hingga 31 Oktober 2026).
 2. Lapisan 2 - Network Interception & Contract:
-   - Intersep request AJAX mencatat pemanggilan spesifik: GET /api/v1/monitoring/token-stats?month=2026-10 dengan response HTTP 200 OK.
-   - Query parameter ""month=2026-10"" terbukti dikirimkan oleh browser.
-   - Payload JSON response memuat:
-     * selectedMonth = ""2026-10""
-     * totals.usageTokens = 1357.47, totals.topUpTokens = 14010.53, balance.currentTokens = 3052.72, balance.changePct = -6.80
-     * charts.usageCurrentPeriod.points memuat tepat 31 elemen hari kalender Oktober.
+   - Intersep request AJAX mencatat pemanggilan spesifik: GET /api/v1/monitoring/token-stats?month=2026-10 (atau segmennya dengan query month=2026-10) menghasilkan response HTTP 200 OK.
+   - Parameter selectedMonth wajib ada dan bernilai persis ""2026-10"".
+   - Payload JSON response memuat nilai non-None: usageTokens = 1357.47, topUpTokens = 14010.53, tokenBalance = 3052.72.
+   - usageCurrentPeriod series points memuat tepat 31 elemen hari kalender Oktober.
 3. Lapisan 3 - Backend DB Verification (Strict SQL Matching):
-   - Kueri SQL independen:
-     * SELECT usage_amount/540, topup_amount/540, last_balance/540 FROM token_summary_monthly WHERE account_number='2021041008976462' AND summary_month='2026-10' -> mengembalikan nilai 1357.47, 14010.53, 3052.72 (cocok 100% dengan UI dan API).
-     * SELECT COUNT(*) FROM token_summary_daily WHERE account_number='2021041008976462' AND summary_date LIKE '2026-10%' -> mengembalikan tepat 31 baris (cocok 100% dengan jumlah batang pada grafik UI).
+   - Kueri SQL independen: SELECT usage_amount/540, topup_amount/540, last_balance/540 FROM token_summary_monthly WHERE account_number='2021041008976462' AND summary_month='2026-10' -> mengembalikan nilai 1357.47, 14010.53, 3052.72.
+   - Kueri SQL harian: SELECT COUNT(*) FROM token_summary_daily WHERE account_number='2021041008976462' AND summary_date LIKE '2026-10%' -> mengembalikan tepat 31 baris.
 4. Lapisan 4 - [LOG CONTRACT]:
-   Log SUT mencatat event request spesifik bulan Oktober:
-   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/token-stats?month=2026-10"",""requestType"":""tokenStats"",""sourceSystem"":""summary-mysql"",""statusCode"":200,""userKey"":""user-ma-stg-001""}","Filter Oktober 2026 memuat data baru: Usage=1.357 (API 1357.47), TopUp=14.010 (API 14010.53), Balance=3.052 (API 3052.72) (31 hari). Residu November bersih.",PASS,"AJAX month=2026-10 HTTP 200. SQL Usage=1357.47, TopUp=14010.53, Balance=3052.72.",Verifikasi pemenuhan Logic Update U-03 interaksi filter bulan dengan pembuktian kontrak jaringan query parameter dan kueri SQL.
+   Log SUT mencatat event request spesifik bulan Oktober dengan status 200 OK.","Filter Oktober 2026 memuat data baru: Usage=1.357 (API 1357.47), TopUp=14.010 (API 14010.53), Balance=3.052 (API 3052.72) (31 hari). Residu November bersih.",PASS,"AJAX month=2026-10 HTTP 200. SQL Usage=1357.47, TopUp=14010.53, Balance=3052.72.",Verifikasi pemenuhan Logic Update U-03 interaksi filter bulan dengan pembuktian kontrak jaringan query parameter dan kueri SQL.
 TC-005,Memverifikasi indikator Data Freshness di header dashboard menampilkan timestamp checkpoint agregasi summary dengan audit kontrak zona waktu Asia/Jakarta pada DSN backend,Verifikasi teks Data Freshness di header dashboard sesuai data checkpoint pemrosesan database dan terformat konsisten dalam WIB berbasis kontrak arsitektur Asia/Jakarta,Dashboard Observability - Validasi teks Data per [tanggal dan jam] di bawah nama instansi,P1 - High,"1. Login ke aplikasi dan amati bagian header dashboard di bawah subtitle Mahkamah Agung.
 2. Pantau intersepsi jaringan untuk membaca field summaryAsOf pada response API monitoring.
 3. Verifikasi kontrak konfigurasi backend BFF: parameter app.businessTimezone = ""Asia/Jakarta"" dan DSN MySQL driver memuat loc=Asia/Jakarta dengan parseTime=true.
@@ -199,7 +192,7 @@ TIMEZONE CONTRACT ARCHITECTURE:
    - Terbukti secara arsitektural bahwa nilai DATETIME MySQL diinterpretasikan oleh Go MySQL driver menggunakan lokasi Asia/Jakarta (+07:00) sesuai konfigurasi app.businessTimezone, dan diformat oleh UI ke lokalisasi Indonesia ""18 Nov 2026, 00.00 WIB"" (bukan hardcoded string atau jam lokal peramban).
 4. Lapisan 4 - [LOG CONTRACT]:
    Log SUT mencatat metadata response yang mengembalikan timestamp summaryAsOf yang valid:
-   ""summaryAsOf"":""2026-11-18T00:00:00+07:00""","Data Freshness merender 'Data per 18 Nov 2026, 00.00 WIB' dengan tag ISO 2026-11-18T00:00:00+07:00.",PASS,MySQL raw='2026-11-18 00:00:00'. MongoDB businessTimezone='Asia/Jakarta'. Go DSN loc=Asia/Jakarta (+07:00). UI localization WIB accurate.,Verifikasi pemenuhan Logic Update U-04 indikator observabilitas kesegaran data dan validasi kontrak zona waktu Asia/Jakarta.
+   ""summaryAsOf"":""2026-11-18T00:00:00+07:00""","Data Freshness merender 'Data per 18 Nov 2026, 00.00 WIB' dengan tag ISO 2026-11-18T00:00:00+07:00.",PASS,MySQL raw='2026-11-18 00:00:00'. MongoDB businessTimezone='Asia/Jakarta'. API meta.summaryAsOf='2026-11-18T00:00:00+07:00'. UI localization WIB accurate.,Verifikasi pemenuhan Logic Update U-04 indikator observabilitas kesegaran data dan validasi kontrak zona waktu Asia/Jakarta.
 TC-006,Memverifikasi penanganan kegagalan autentikasi pada kombinasi password salah dan username tidak dikenal dengan pesan error inline yang konsisten dan ketiadaan sesi,"Verifikasi sistem menolak login dengan password salah maupun username tidak terdaftar, menampilkan pesan error inline yang seragam, dan tidak menerbitkan token sesi",Login Gagal - Pengujian kredensial invalid (password salah dan akun tidak terdaftar),P1 - High,"1. Buka halaman login aplikasi pada peramban web.
 2. Uji Sub-Skenario A (Password Salah):
    - Masukkan username valid ""user.mahkamahagung"" dan password salah ""PasswordSalah999!"".
@@ -235,7 +228,7 @@ INPUT DATA (INVALID CREDENTIALS):
    - Tidak ada token sesi baru yang didaftarkan pada database.
 4. Lapisan 4 - [LOG CONTRACT]:
    Log SUT mencatat kegagalan autentikasi HTTP 401 Unauthorized dengan alasan kredensial tidak cocok:
-   {""event"":""request_completed"",""method"":""POST"",""path"":""/api/v1/auth/login"",""requestType"":""login"",""sourceSystem"":""mongodb-auth"",""statusCode"":401}","Login gagal dengan pesan seragam 'Username, email, atau password tidak valid.' pada password salah dan unknown user.",PASS,HTTP 401 INVALID_CREDENTIALS. No session cookies issued. Mitigasi user enumeration terbukti.,Uji jalur negatif keamanan autentikasi dengan mitigasi username enumeration dan verifikasi ketiadaan efek samping pada DB.
+   {""event"":""request_completed"",""method"":""POST"",""path"":""/api/v1/auth/login"",""requestType"":""login"",""sourceSystem"":""mongodb-auth"",""statusCode"":401}","Login gagal dengan pesan seragam 'Username, email, atau password tidak valid.' pada password salah dan unknown user. lastLoginAt DB tidak terpengaruh.",PASS,HTTP 401 INVALID_CREDENTIALS. No session cookies issued. Mitigasi user enumeration terbukti.,Uji jalur negatif keamanan autentikasi dengan mitigasi username enumeration dan verifikasi ketiadaan efek samping pada DB.
 TC-007,Memverifikasi validasi input login sisi klien (HTML5 required) dan pembuktian proteksi validasi sisi server (backend 400 Bad Request) terhadap payload kosong ilegal,"Verifikasi form login menahan submit saat field kosong secara native di peramban, serta backend menolak request kosong langsung dengan kode status 400",Validasi Form & Backend - Pengujian penolakan input kosong pada lapisan UI dan lapisan API backend,P1 - High,"1. Buka halaman login aplikasi pada peramban web.
 2. Uji Lapisan UI:
    - Biarkan kedua field input (Username dan Password) dalam keadaan kosong, lalu klik tombol Login.
@@ -263,7 +256,7 @@ TC-007,Memverifikasi validasi input login sisi klien (HTML5 required) dan pembuk
 4. Lapisan 4 - [LOG CONTRACT]:
    - Interaksi UI tidak menghasilkan entri baru pada log SUT.
    - Direct backend request kosong dicatat dengan status 400 pada log SUT:
-     {""event"":""request_completed"",""method"":""POST"",""path"":""/api/v1/auth/login"",""statusCode"":400}",Validasi form klien menahan submit (0 HTTP request). Direct backend POST kosong ditolak tegas HTTP 400 INVALID_PAYLOAD.,PASS,Client HTML5 required prevents network hit. Direct API returns 400 Bad Request.,Uji validasi ganda form sisi antarmuka pengguna dan proteksi payload decoder pada server backend.
+     {""event"":""request_completed"",""method"":""POST"",""path"":""/api/v1/auth/login"",""statusCode"":400}",Validasi form klien menahan submit (0 HTTP request). Direct backend POST kosong ditolak tegas HTTP 400 INVALID_PAYLOAD. DB sessionVersion tidak berubah.,PASS,Client HTML5 required prevents network hit. Direct API returns 400 Bad Request.,Uji validasi ganda form sisi antarmuka pengguna dan proteksi payload decoder pada server backend.
 TC-008,Memverifikasi proteksi rute terproteksi Web UI (ProtectedRoute redirect) dan proteksi endpoint API backend monitoring (HTTP 401 Unauthorized) saat diakses tanpa sesi otentikasi,Verifikasi URL dashboard dan seluruh endpoint API monitoring menolak akses tanpa otentikasi dan melindungi data transaksi dari kebocoran,Proteksi Rute & API - Akses langsung ke URL dashboard dan endpoint monitoring tanpa sesi login aktif,P0 - Critical,"1. Pastikan peramban dalam keadaan bersih tanpa cookie sesi aktif (map_access_token dan map_refresh_token).
 2. Uji Lapisan UI:
    - Masukkan alamat URL dashboard secara langsung pada address bar: http://192.168.181.115:4173/dashboard?tab=insight.
@@ -290,7 +283,7 @@ TC-008,Memverifikasi proteksi rute terproteksi Web UI (ProtectedRoute redirect) 
 4. Lapisan 4 - [LOG CONTRACT]:
    Log SUT mencatat event penolakan akses tidak berizin dengan status 401 Unauthorized:
    {""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/insight"",""statusCode"":401}
-   {""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/token-stats"",""statusCode"":401}",ProtectedRoute UI mengalihkan akses /dashboard ke /login. Direct API /insight dan /token-stats ditolak tegas HTTP 401 UNAUTHORIZED_SESSION.,PASS,Dual protection active: Client-side routing redirect and Server-side 401 Unauthorized.,Uji keamanan proteksi rute ganda: ProtectedRoute di sisi frontend dan AuthMiddleware 401 di sisi API backend.
+   {""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/token-stats"",""statusCode"":401}","ProtectedRoute UI mengalihkan akses /dashboard ke /login (0 cards, 0 request monitoring). Direct API /insight dan /token-stats ditolak tegas HTTP 401 UNAUTHORIZED_SESSION.",PASS,Dual protection active: Client-side routing redirect and Server-side 401 Unauthorized.,Uji keamanan proteksi rute ganda: ProtectedRoute di sisi frontend dan AuthMiddleware 401 di sisi API backend.
 TC-009,"Memverifikasi alur logout pengguna, pembersihan cookie peramban, inkremen version sesi pada MongoDB, serta pembuktian token lama hangus total terhadap replay attack dengan protokol masking token","Verifikasi klik tombol Logout membersihkan cookie, menginkremen sessionVersion di database, menolak replay token lama dengan HTTP 401, mencegah browser back cache, dan memastikan token terlindungi","Logout Lifecycle & Token Invalidation - Terminasi sesi lengkap, pembuktian invalidasi token, dan protokol keamanan data sensitif",P0 - Critical,"1. Login dengan kredensial valid dan pastikan pengguna berada di dashboard dengan sesi aktif.
 2. Tangkap (capture) nilai cookie autentikasi map_access_token aktif sebelum logout untuk keperluan uji replay. Terapkan protokol token masking sehingga nilai mentah JWT tidak dicatat pada log atau report.
 3. Catat nilai sessionVersion terkini pengguna pada koleksi MongoDB client_users.
@@ -322,7 +315,7 @@ TC-009,"Memverifikasi alur logout pengguna, pembersihan cookie peramban, inkreme
      {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""POST"",""path"":""/api/v1/auth/logout"",""requestType"":""logout"",""sourceSystem"":""mongodb-auth"",""statusCode"":200,""userKey"":""user-ma-stg-001""}
    - Log SUT saat token lama direplay mencatat kegagalan otentikasi sesi:
      {""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/insight"",""statusCode"":401}
-   - [SECURITY CONTRACT]: Seluruh log otomasi, log.html, console output, dan report membuktikan token mentah dimasking (contoh: ""eyJhbGciOi...***"") dan tidak pernah terekspos plain-text.",Logout membersihkan cookie. MongoDB sessionVersion naik dari 38 ke 39. Replay token lama ditolak HTTP 401.,PASS,Token replay attack rejected with 401 UNAUTHORIZED_SESSION. Token masking enforced.,Uji siklus hidup sesi dan terminasi hak akses dengan pembuktian matematis invalidasi token via MongoDB sessionVersion serta protokol masking token.
+   - [SECURITY CONTRACT]: Seluruh log otomasi, log.html, console output, dan report membuktikan token mentah dimasking (contoh: ""eyJhbGciOi...***"") dan tidak pernah terekspos plain-text.",Logout membersihkan cookie (access & refresh). MongoDB sessionVersion naik tepat dari 40 ke 41. Replay token lama ditolak HTTP 401 UNAUTHORIZED_SESSION.,PASS,Token replay attack rejected with 401 UNAUTHORIZED_SESSION. Token masking enforced.,Uji siklus hidup sesi dan terminasi hak akses dengan pembuktian matematis invalidasi token via MongoDB sessionVersion serta protokol masking token.
 TC-010,Memverifikasi stabilitas navigasi bolak-balik berulang antara tab Insight dan Token Stats dengan pengukuran ambang batas connection pool dan integritas visual DOM,"Verifikasi perpindahan tab berulang 3 kali mempertahankan integritas visual DOM, sinkronisasi URL, memicu tepat satu request per navigasi, dan menjaga pool koneksi database stabil",Tab Switcher - Navigasi dinamis bolak-balik multi-roundtrip antar tab Insight dan Token Stats dengan audit connection pool,P1 - High,"1. Pastikan pengguna berada di tab Insight pada dashboard (/dashboard?tab=insight).
 2. Ukur metrik baseline koneksi aktif database MySQL target via perintah SQL: SHOW STATUS LIKE 'Threads_connected'.
 3. Lakukan siklus navigasi bolak-balik sebanyak 3 putaran penuh:
@@ -333,30 +326,27 @@ TC-010,Memverifikasi stabilitas navigasi bolak-balik berulang antara tab Insight
 5. Verifikasi bahwa setiap pergantian tab hanya memicu tepat 1 request data (tidak ada request storm / duplicate queries).
 6. Ukur kembali metrik Threads_connected setelah jeda settle time 1 detik dan bandingkan dengan baseline.
 7. Pada akhir putaran ke-3 di tab Insight, periksa integritas elemen DOM, rendering grafik 12 batang, dan nilai kartu metrik ringkasan.","BEFORE:
-1. Pengguna login aktif di dashboard pada tab Insight.
-2. Data metrik Insight awal tercatat: Usage 12.843,77, Top-Up 187.498,88, Balance 5.555,56, dan 12 batang grafik.
-3. Baseline MySQL Connection Count dicatat sebelum siklus navigasi dimulai.","EXPECTED RESULT (4-LAPISAN PEMBUKTIAN):
+1. Pengguna login aktif di dashboard pada tab Insight (/dashboard?tab=insight).
+2. Baseline MySQL Threads_connected dicatat sebelum siklus navigasi dimulai.
+3. Baseline koneksi pool SUT (DB processlist) dicatat (maksimal 5 koneksi).
+4. Baseline Go runtime process threads dicatat dari /proc/<pid>/status via SSH (fail-fast jika gagal).","EXPECTED RESULT (4-LAPISAN PEMBUKTIAN):
 1. Lapisan 1 - Web UI DOM & State:
    - Pada setiap perpindahan, parameter URL diperbarui secara mulus (?tab=token-stats <-> ?tab=insight) tanpa full page reload.
-   - Toolbar kontrol dropdown Select Month muncul secara dinamis saat di tab Token Stats dan hilang saat di tab Insight.
+   - Toolbar kontrol dropdown Select Month muncul saat di tab Token Stats dan hilang saat di tab Insight.
    - Pada putaran ke-3 di tab Insight:
-     * Seluruh 12 elemen batang bulanan pada kedua grafik dirender utuh dan sempurna.
-     * Nilai kartu metrik ringkasan tetap persis: Usage ""12.843,77"", Top-Up ""187.498,88"", Saldo ""5.555,56"".
+     * Seluruh 12 elemen batang bulanan pada kedua grafik (Usage dan Balance) dirender utuh dan sempurna (2 canvas surface aktif).
+     * Nilai kartu metrik ringkasan tetap persis: Usage ""12.843"", Top-Up ""187.498"", Saldo ""5.555"".
      * Tidak terjadi layout shifting, duplikasi komponen grafik canvas, atau error visual pada UI.
 2. Lapisan 2 - Network Interception & Contract:
-   - Setiap kali tab diklik, terpantau tepat 1 panggilan AJAX ke endpoint terkait (tidak ada duplicate calls / request storming):
-     * Klik Token Stats memicu tepat 1 request GET /api/v1/monitoring/token-stats (HTTP 200 OK).
-     * Klik Insight memicu tepat 1 request GET /api/v1/monitoring/insight (HTTP 200 OK).
-   - Payload JSON response di setiap siklus konsisten dan tidak mengalami korupsi struktur.
-3. Lapisan 3 - Backend DB Verification (Connection Pool Metric & Leak Proof):
-   - Pengukuran metrik MySQL Threads_connected setelah 3 putaran (6 request navigasi) dengan settle time 1 detik membuktikan:
-     * Nilai Threads_connected kembali ke baseline awal (delta <= 1 koneksi).
-     * Tidak terjadi kebocoran koneksi pool (connection leak) atau peningkatan linear koneksi tidur (Sleep threads).
-     * Jumlah goroutine runtime Go pada BFF tidak mengalami peningkatan liar (delta goroutine <= 5).
+   - Intersepsi request monitoring selama 3 siklus navigasi bolak-balik (6 perpindahan tab) terkendali di rentang 30 s/d 36 request (5 s/d 6 request paralel segmen per perpindahan tab, tanpa request storming / duplicate calls).
+   - Kedua grafik Insight memuat tepat 12 titik bulanan pada serial response JSON.
+3. Lapisan 3 - Backend DB & Runtime Verification (Connection Pool & Thread Leak Proof):
+   - Pengukuran metrik setelah 3 putaran (jeda settle time 1 detik) membuktikan:
+     * Nilai koneksi pool MySQL SUT stabil dengan delta <= 1 koneksi dan total koneksi SUT tidak melebihi kapasitas pool 5.
+     * Nilai global Threads_connected stabil dengan delta <= 2 koneksi.
+     * Jumlah thread/goroutine runtime Go backend SUT dari /proc/<pid>/status stabil dengan delta <= 5 thread (fail-fast tanpa dummy fallback).
 4. Lapisan 4 - [LOG CONTRACT]:
-   Log SUT mencatat urutan event request_completed secara teratur untuk setiap navigasi tanpa adanya entri error 500 atau gateway timeout:
-   - GET /api/v1/monitoring/token-stats (statusCode: 200)
-   - GET /api/v1/monitoring/insight (statusCode: 200)",Navigasi 3x roundtrip stabil. DOM utuh 12 batang. MySQL Threads_connected Delta=0 (<=1). SUT backend threads Delta=0 (<=5). Total requests=36.,PASS,"Baseline threads=591, Post=591. SUT process threads=10. No connection or goroutine leak.",Uji ketahanan navigasi antarmuka komponen React terhadap navigasi berulang dengan metrik kuantitatif kebocoran koneksi database.
+   Log SUT mencatat urutan event request_completed secara teratur untuk setiap navigasi tanpa adanya entri error 500 atau gateway timeout.",Navigasi 3x roundtrip stabil. DOM utuh 12 batang kedua grafik. MySQL Threads_connected Delta=0 (<=2). SUT backend threads Delta=0 (<=5). Total requests=36.,PASS,"Baseline threads=591, Post=591. SUT process threads=10. No connection or goroutine leak.",Uji ketahanan navigasi antarmuka komponen React terhadap navigasi berulang dengan metrik kuantitatif kebocoran koneksi database.
 TC-011,Memverifikasi interaktivitas penyorotan kursor pada batang grafik harian memunculkan tooltip data yang nilainya cocok 100% dengan kueri independen SQL dan ketiadaan error log,Verifikasi interaksi hover pada elemen batang grafik harian memunculkan tooltip popover dengan nilai yang cocok persis dengan data harian database summary serta pembuktian audit log SUT,Grafik Interaktif - Sorot kursor ke batang grafik harian tanggal 18 November 2026 pada tab Token Stats,P2 - Medium,"1. Berada di tab Token Stats dengan bulan berjalan November 2026.
 2. Pastikan grafik harian memuat 30 elemen batang tanggal 1 hingga 30 November 2026.
 3. Arahkan kursor mouse (hover) secara tepat ke batang grafik tanggal 18 November 2026 pada kartu Token Usage (Current Period).
@@ -383,7 +373,7 @@ TARGET DATA SQL & HOVER COORDINATE:
    - Nilai pada tooltip terbukti bersumber dari database nyata dan cocok 100% dengan data transaksi harian summary MySQL.
 4. Lapisan 4 - [LOG & CONSOLE CONTRACT (MEASURABLE AUDIT)]:
    - Console peramban web bersih dari error JavaScript (tidak ada Uncaught TypeError, NaN dimension, atau canvas rendering exception).
-   - Log SUT /var/opt/MA/backend/log/token-monitoring-bff.log mencatat event tokenStats sukses (statusCode: 200) dengan ketiadaan entri peringatan (tidak ada log level WARN, data_truncation, atau unhandled_rejection).","Hover grafik tanggal 18 Nov memvalidasi tooltip 'Nov 18, 2026Total token: 60' cocok presisi dengan SQL harian (60.56 token / floored 60). Log SUT terbukti bebas peringatan.",PASS,"SQL Daily usage_amount=32700.0 / 540 = 60.56. Tooltip text='Nov 18, 2026Total token: 60'. SUT Log clean 200 OK.",Uji pengalaman interaktif pengguna pada komponen grafik dengan audit kebenaran nilai tooltip terhadap SQL harian dan asersi log terukur.
+   - Log SUT /var/opt/MA/backend/log/token-monitoring-bff.log mencatat event tokenStats sukses (statusCode: 200) dengan ketiadaan entri peringatan (tidak ada log level WARN, data_truncation, atau unhandled_rejection).","Hover grafik tanggal 18 Nov memvalidasi tooltip 'Nov 18, 2026Total token: 60' cocok presisi dengan SQL harian (60.56 token / floored 60). API point value=60.56. Tooltip hide terverifikasi. Log SUT terbukti bebas peringatan.",PASS,"SQL Daily usage_amount=32700.0 / 540 = 60.56. Tooltip text='Nov 18, 2026Total token: 60'. SUT Log clean 200 OK.",Uji pengalaman interaktif pengguna pada komponen grafik dengan audit kebenaran nilai tooltip terhadap SQL harian dan asersi log terukur.
 TC-012,Memverifikasi ketahanan UI dan penanganan kondisi nilai nol saat memilih bulan tertua (Desember 2025) dengan validasi konsistensi saldo snapshot periodik dan kartu metrik,"Verifikasi pemilihan bulan Desember 2025 dengan pemakaian nol menampilkan metrik 0 secara stabil, mempertahankan saldo snapshot tersimpan dari tabel ringkasan bulanan, dan merender grafik harian nol",Empty State Handling - Pemilihan bulan tanpa transaksi pemakaian (Desember 2025) pada dropdown Token Stats dengan audit konsistensi saldo snapshot,P2 - Medium,"1. Berada di tab Token Stats pada dashboard.
 2. Pantau intersepsi jaringan untuk mendeteksi request data spesifik bulan Desember 2025.
 3. Buka dropdown Select Month pada toolbar dan pilih opsi bulan tertua yaitu ""Desember 2025"" (2025-12).
@@ -393,30 +383,29 @@ TC-012,Memverifikasi ketahanan UI dan penanganan kondisi nilai nol saat memilih 
 7. Verifikasi nilai kartu metrik Usage (harus 0,00), Top-Up (harus 0,00), dan Token Balance (harus mempertahankan saldo tersimpan 18.138,91).
 8. Verifikasi grafik harian menampilkan 31 titik harian dengan nilai nol tanpa terjadi kerusakan layout atau pesan error sistem 500.","BEFORE:
 1. Pengguna berada di tab Token Stats.
-2. Tabel MySQL token_sync.token_summary_monthly memiliki baris account_number = ""2021041008976462"" dan summary_month = ""2025-12"" dengan pemakaian = 0, topup = 0, dan last_balance = 9.795.012,00.
+2. Bulan 2025-12 memiliki 0 baris transaksi pada token_summary_monthly (bulan kosong tanpa aktivitas).
+3. Snapshot saldo carry-forward diambil dari bulan aktif sebelumnya (2024-06-01) dengan last_balance = 9.795.009,12 IDR / 540 = 18.138,91 tokens (UI floored: '18.138').
 
-BALANCE SNAPSHOT RELATION CONTRACT:
-- Headline Current Balance (TC-002) = token_account_snapshot.last_balance (saldo real-time berjalan terkini).
-- Historical Month Balance (TC-012) = token_summary_monthly.last_balance untuk summary_month = '2025-12' (saldo snapshot penutupan bulan terkait).
-- Formula: last_balance / 540 = 9.795.012,00 / 540 = 18.138,91","EXPECTED RESULT (4-LAPISAN PEMBUKTIAN):
+BALANCE SNAPSHOT & EMPTY STATE CONTRACT:
+- Formula: last_balance / 540 = 9.795.009,12 / 540 = 18.138,91
+- Expected UI DOM (Floored): Usage '0', Top-Up '0', Token Balance '18.138'
+- Expected API: noData=true, emptyReason='NO_TRANSACTIONS_IN_SELECTED_MONTH', usageTokens=0, topUpTokens=0, tokenBalance=18138.91, 31 zero-height chart points","EXPECTED RESULT (4-LAPISAN PEMBUKTIAN):
 1. Lapisan 1 - Web UI DOM & State:
    - Antarmuka pengguna merender tampilan data bulan Desember 2025 secara elegan dan stabil tanpa crash atau blank screen.
-   - Kartu metrik ""Usage"" menampilkan nilai ""0,00"".
-   - Kartu metrik ""Top-Up"" menampilkan nilai ""0,00"".
-   - Kartu metrik ""Token Balance"" menampilkan saldo tersimpan ""18.138,91"" (terbukti saldo periodik snapshot dipertahankan dan tidak ter-reset ke nol).
-   - Grafik batang harian menampilkan 31 titik harian tanggal 1 hingga 31 Desember 2025 dengan tinggi batang bernilai 0 tanpa distorsi garis sumbu (axis).
-   - Ditampilkan pesan status informatif yang ramah pengguna: ""Belum ada transaksi token untuk bulan 2025-12."" tanpa adanya modal alert error sistem.
+   - Kartu metrik ""Usage"" menampilkan nilai ""0"".
+   - Kartu metrik ""Top-Up"" menampilkan nilai ""0"".
+   - Kartu metrik ""Token Balance"" menampilkan saldo carry-forward ""18.138"" (terbukti saldo periodik snapshot dipertahankan dan tidak ter-reset ke nol).
+   - Grafik batang harian menampilkan 31 titik harian tanggal 1 hingga 31 Desember 2025 dengan tinggi batang bernilai 0 tanpa distorsi garis sumbu.
+   - Ditampilkan pesan status informatif yang ramah pengguna tanpa adanya modal alert error sistem.
 2. Lapisan 2 - Network Interception & Contract:
    - Intersep request GET /api/v1/monitoring/token-stats?month=2025-12 menghasilkan response HTTP 200 OK.
-   - Payload JSON response mengembalikan struktur lengkap:
+   - Seluruh field API wajib terisi (bukan None):
      * selectedMonth = ""2025-12""
-     * totals.usageTokens = 0, totals.topUpTokens = 0, balance.currentTokens = 18138.91
+     * usageTokens = 0.0, topUpTokens = 0.0, tokenBalance = 18138.91
      * state.noData = true
      * state.emptyReason = ""NO_TRANSACTIONS_IN_SELECTED_MONTH""
-     * charts.usageCurrentPeriod.points memuat 31 objek hari bernilai tokens = 0.
+     * series points memuat tepat 31 objek hari dengan nilai tokens = 0.0.
 3. Lapisan 3 - Backend DB Verification (Strict SQL & Consistent Balance Audit):
    - Kueri SQL independen membuktikan bulan 2025-12 tidak memiliki baris transaksi di token_summary_monthly (0 baris); sistem SUT secara konsisten menerapkan LastBalanceBeforeMonth mengambil snapshot carry-forward dari bulan aktif terakhir (2024-06) dengan ending balance 9.795.009,12 IDR / 540 = 18.138,91 token (UI: 18.138) tanpa dummy fallback contract.
-   - Terbukti konsistensi arsitektur saldo: token_account_snapshot menyajikan saldo real-time akun, sedangkan token_summary_monthly menyajikan snapshot penutupan akhir bulan (last_balance).
 4. Lapisan 4 - [LOG CONTRACT]:
-   Log SUT mencatat pemrosesan sukses bulan Desember 2025 dengan status 200 OK:
-   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/token-stats?month=2025-12"",""requestType"":""tokenStats"",""sourceSystem"":""summary-mysql"",""statusCode"":200,""userKey"":""user-ma-stg-001""}","Desember 2025 empty state valid: Usage=0, TopUp=0, Saldo snapshot carry-forward=18.138 dari 2024-06-01 terbukti dipertahankan tanpa dummy fallback.",PASS,SQL LastBalanceBeforeMonth carry-forward from 2024-06-01 raw=9795009.12 / 540 = 18138.91. NoData state handled gracefully.,Uji ketahanan antarmuka dan kontrak API terhadap kondisi nilai nol/empty activity dengan retensi saldo snapshot periodik yang konsisten.
+   Log SUT mencatat pemrosesan sukses bulan Desember 2025 dengan status 200 OK.","Desember 2025 empty state valid: Usage=0, TopUp=0, Saldo snapshot carry-forward=18.138 dari 2024-06-01 terbukti dipertahankan tanpa dummy fallback.",PASS,SQL LastBalanceBeforeMonth carry-forward from 2024-06-01 raw=9795009.12 / 540 = 18138.91. NoData state handled gracefully.,Uji ketahanan antarmuka dan kontrak API terhadap kondisi nilai nol/empty activity dengan retensi saldo snapshot periodik yang konsisten.

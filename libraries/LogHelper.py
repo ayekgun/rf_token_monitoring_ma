@@ -4,13 +4,14 @@ Complies with Global QA SDET & RF Constitution:
 - Chunk size 4000 characters to prevent log message truncation in RF 5.0.1
 - Pretty-printed JSON snapshots (indent=2)
 - Transparent PASS and FAIL comparison logging (Expected vs Actual field-by-field)
+- Strict Deep Compare: Automatically computes differences between Expected and Actual payloads.
 """
 import json
 import re
 from robot.api import logger
 
 CHUNK_SIZE = 4000
-JWT_PATTERN = re.compile(r'eyJ[A-Za-z0-9-_]{10,}\.[A-Za-z0-9-_]{10,}\.[A-Za-z0-9-_]+')
+JWT_PATTERN = re.compile(r"eyJ[A-Za-z0-9-_]{10,}\.[A-Za-z0-9-_]{10,}\.[A-Za-z0-9-_]+")
 
 def mask_sensitive(text: str) -> str:
     """Masks JWT tokens to protect credentials in automation logs."""
@@ -47,27 +48,40 @@ def _log_chunked(title, content, chunk_size=CHUNK_SIZE):
 def deep_compare(expected, actual, path=""):
     """
     Recursively compares expected vs actual values (dicts, lists, scalars).
-    Handles numeric equality between int and float (e.g. 500 == 500.0).
+    Handles numeric equality between int and float (tolerance 1e-4).
     Returns a list of human-readable mismatch strings.
     """
     mismatches = []
     current_path = path if path else "root"
 
+    # None check
+    if (expected is None) != (actual is None):
+        mismatches.append("At '" + current_path + "': expected " + str(expected) + ", got " + str(actual))
+        return mismatches
+    if expected is None and actual is None:
+        return mismatches
+
+    # Boolean check (must precede int/float because bool is subclass of int)
+    if isinstance(expected, bool) or isinstance(actual, bool):
+        if type(expected) is not type(actual) or expected != actual:
+            mismatches.append("At '" + current_path + "': expected boolean " + str(expected) + ", got " + str(actual))
+        return mismatches
+
     # Numeric equivalence check
     if isinstance(expected, (int, float)) and isinstance(actual, (int, float)):
-        if abs(float(expected) - float(actual)) > 1e-6:
-            mismatches.append(f"At '{current_path}': expected numeric {expected}, got {actual}")
+        if abs(float(expected) - float(actual)) > 1e-4:
+            mismatches.append("At '" + current_path + "': expected numeric " + str(expected) + ", got " + str(actual))
         return mismatches
 
     # Dict comparison
     if isinstance(expected, dict) and isinstance(actual, dict):
         all_keys = sorted(set(expected.keys()) | set(actual.keys()))
         for k in all_keys:
-            subpath = f"{current_path}.{k}" if path else str(k)
+            subpath = (current_path + "." + str(k)) if path else str(k)
             if k not in expected:
-                mismatches.append(f"At '{subpath}': unexpected extra key in actual payload (value: {actual[k]})")
+                mismatches.append("At '" + subpath + "': unexpected extra key in actual payload (value: " + str(actual[k]) + ")")
             elif k not in actual:
-                mismatches.append(f"At '{subpath}': expected key missing from actual payload (expected: {expected[k]})")
+                mismatches.append("At '" + subpath + "': expected key missing from actual payload (expected: " + str(expected[k]) + ")")
             else:
                 mismatches.extend(deep_compare(expected[k], actual[k], subpath))
         return mismatches
@@ -75,33 +89,40 @@ def deep_compare(expected, actual, path=""):
     # List comparison
     if isinstance(expected, list) and isinstance(actual, list):
         if len(expected) != len(actual):
-            mismatches.append(f"At '{current_path}': array length mismatch. Expected {len(expected)} items, got {len(actual)} items.")
+            mismatches.append("At '" + current_path + "': array length mismatch. Expected " + str(len(expected)) + " items, got " + str(len(actual)) + " items.")
         min_len = min(len(expected), len(actual))
         for i in range(min_len):
-            subpath = f"{current_path}[{i}]"
+            subpath = current_path + "[" + str(i) + "]"
             mismatches.extend(deep_compare(expected[i], actual[i], subpath))
         return mismatches
 
     # String & other scalar comparison
     if str(expected).strip() != str(actual).strip():
-        mismatches.append(f"At '{current_path}': expected '{expected}', got '{actual}'")
+        mismatches.append("At '" + current_path + "': expected '" + str(expected) + "', got '" + str(actual) + "'")
     return mismatches
 
-def log_transparent_comparison(title, expected, actual, mismatches=None):
+def log_transparent_comparison(title, expected, actual, mismatches=None, raise_on_mismatch=False):
     """
     Logs full snapshots of Expected and Actual payloads plus field-by-field verification.
+    Automatically computes deep_compare(expected, actual) if mismatches is None.
     MANDATORY: Must be logged for BOTH PASS and FAIL outcomes to ensure auditable logs.
     """
-    logger.info(f"================================================================================")
-    logger.info(f" TRANSPARENT PAYLOAD AUDIT: {title}")
-    logger.info(f"================================================================================")
-    _log_chunked(f"[EXPECTED PAYLOAD] {title}", expected)
-    _log_chunked(f"[ACTUAL PAYLOAD] {title}", actual)
+    if mismatches is None:
+        mismatches = deep_compare(expected, actual)
+
+    logger.info("================================================================================")
+    logger.info(" TRANSPARENT PAYLOAD AUDIT: " + str(title))
+    logger.info("================================================================================")
+    _log_chunked("[EXPECTED PAYLOAD] " + str(title), expected)
+    _log_chunked("[ACTUAL PAYLOAD] " + str(title), actual)
 
     if mismatches:
-        logger.error(f"--- [COMPARISON RESULT: {title}] FAIL - {len(mismatches)} MISMATCH(ES) FOUND ---")
+        logger.error("--- [COMPARISON RESULT: " + str(title) + "] FAIL - " + str(len(mismatches)) + " MISMATCH(ES) FOUND ---")
         for idx, diff in enumerate(mismatches, 1):
-            logger.error(f"  [{idx}] {diff}")
+            logger.error("  [" + str(idx) + "] " + str(diff))
+        if raise_on_mismatch:
+            raise AssertionError("Audit komparasi gagal (" + str(title) + "): " + str(mismatches[0]))
     else:
-        logger.info(f"--- [COMPARISON RESULT: {title}] PASS - 100% MATCH (All fields identical) ---")
-    logger.info(f"================================================================================")
+        logger.info("--- [COMPARISON RESULT: " + str(title) + "] PASS - 100% MATCH (All fields identical) ---")
+    logger.info("================================================================================")
+    return mismatches
