@@ -4,9 +4,5 @@ __pycache__/
 *.swp
 *~
 .DS_Store
-results/
-log.html
-output.xml
-report.html
 automation/screenshots/
 *.png
