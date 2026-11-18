@@ -6,14 +6,24 @@ Complies with Global QA SDET & RF Constitution:
 - Transparent PASS and FAIL comparison logging (Expected vs Actual field-by-field)
 """
 import json
+import re
 from robot.api import logger
 
 CHUNK_SIZE = 4000
+JWT_PATTERN = re.compile(r'eyJ[A-Za-z0-9-_]{10,}\.[A-Za-z0-9-_]{10,}\.[A-Za-z0-9-_]+')
+
+def mask_sensitive(text: str) -> str:
+    """Masks JWT tokens to protect credentials in automation logs."""
+    if not isinstance(text, str):
+        text = str(text)
+    return JWT_PATTERN.sub(lambda m: m.group(0)[:10] + "...[REDACTED_JWT_TOKEN]", text)
 
 def _format_content(content):
     if isinstance(content, (dict, list)):
-        return json.dumps(content, indent=2, ensure_ascii=False, default=str)
-    return str(content)
+        raw = json.dumps(content, indent=2, ensure_ascii=False, default=str)
+    else:
+        raw = str(content)
+    return mask_sensitive(raw)
 
 def _log_chunked(title, content, chunk_size=CHUNK_SIZE):
     """

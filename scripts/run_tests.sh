@@ -10,6 +10,12 @@ SCRIPT_DIR="$(dirname "$REAL_SCRIPT")"
 RF_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$RF_DIR"
 
+if [ -f "$RF_DIR/.env" ]; then
+  set -a
+  source "$RF_DIR/.env"
+  set +a
+fi
+
 export DISPLAY="${DISPLAY:-:0}"
 
 ROBOT_ARGS=()

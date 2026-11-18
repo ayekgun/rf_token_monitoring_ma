@@ -1,92 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<robot generator="Robot 7.4.2 (Python 3.14.10 on linux)" generated="2026-11-18T18:24:04.964539" rpa="false" schemaversion="5">
+<robot generator="Robot 7.4.2 (Python 3.14.10 on linux)" generated="2026-11-19T02:34:18.676278" rpa="false" schemaversion="5">
 <suite id="s1" name="Tests" source="/home/gunawan/Jamob/2026/PB192644862601YA_PB192644872602YA/rf_token_monitoring_ma/tests">
 <suite id="s1-s1" name="Test Token Monitoring Web" source="/home/gunawan/Jamob/2026/PB192644862601YA_PB192644872602YA/rf_token_monitoring_ma/tests/test_token_monitoring_web.robot">
 <kw name="UI Buka Sesi Browser Playwright" owner="TokenMonitoringLibrary" type="SETUP">
-<msg time="2026-11-18T18:24:05.304156" level="INFO">Launching Playwright Chromium (Headed=True, Chrome=/home/gunawan/.cache/ms-playwright/chromium-1255/chrome-linux64/chrome)</msg>
+<msg time="2026-11-19T02:34:18.964653" level="INFO">Launching Playwright Chromium (Headed=False, Chrome=/home/gunawan/.cache/ms-playwright/chromium-1255/chrome-linux64/chrome)</msg>
 <doc>Memulai sesi browser Chromium dengan HUD dan Spotlight overlay.</doc>
-<status status="PASS" start="2026-11-18T18:24:05.303931" elapsed="0.955373"/>
+<status status="PASS" start="2026-11-19T02:34:18.964423" elapsed="0.660068"/>
 </kw>
 <test id="s1-s1-t1" name="TC-001 Verifikasi Login Pengguna Monitoring Dengan Kredensial Valid Berhasil Masuk Ke Dashboard" line="12">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:09.070306" level="INFO">SSH Log baseline offset: 8593294 bytes</msg>
-<msg time="2026-11-18T18:24:09.387435" level="INFO">=== [START TEST SETUP] TC-001 ===</msg>
+<msg time="2026-11-19T02:34:28.530317" level="INFO">SSH Log baseline offset: 9174404 bytes</msg>
+<msg time="2026-11-19T02:34:28.545990" level="INFO">=== [START TEST SETUP] TC-001 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:24:06.262960" elapsed="3.124629"/>
+<status status="PASS" start="2026-11-19T02:34:19.626821" elapsed="8.919312"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:06.261796" elapsed="3.125948"/>
+<status status="PASS" start="2026-11-19T02:34:19.626179" elapsed="8.920108"/>
 </kw>
 <kw name="Given Catat Snapshot Sesi Pengguna Awal Pada Database MongoDB" owner="token_monitoring_keywords">
 <kw name="DB Catat Snapshot Pengguna Awal Pada MongoDB" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:10.039777" level="INFO">Initial MongoDB User Snapshot: lastLoginAt=2026-11-18 11:10:56.319000, sessionVersion=33</msg>
+<msg time="2026-11-19T02:34:29.520966" level="INFO">Initial MongoDB User Snapshot: lastLoginAt=2026-11-18 19:33:39.391000, sessionVersion=38</msg>
 <doc>Merekam lastLoginAt dan sessionVersion sebelum login.</doc>
-<status status="PASS" start="2026-11-18T18:24:09.388435" elapsed="0.651508"/>
+<status status="PASS" start="2026-11-19T02:34:28.547175" elapsed="0.973929"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:09.388091" elapsed="0.652023"/>
+<status status="PASS" start="2026-11-19T02:34:28.546688" elapsed="0.974563"/>
 </kw>
 <kw name="When Pengguna Membuka Halaman Login Web UI" owner="token_monitoring_keywords">
 <kw name="UI Navigasi Ke Halaman Login" owner="TokenMonitoringLibrary">
 <doc>Membuka halaman login via Playwright dengan cookies bersih.</doc>
-<status status="PASS" start="2026-11-18T18:24:10.040989" elapsed="3.126911"/>
+<status status="PASS" start="2026-11-19T02:34:29.522075" elapsed="11.292436"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:10.040534" elapsed="3.127556"/>
+<status status="PASS" start="2026-11-19T02:34:29.521655" elapsed="11.292992"/>
 </kw>
 <kw name="And Pengguna Memasukkan Kredensial Valid Dan Mengklik Tombol Login" owner="token_monitoring_keywords">
 <kw name="UI Input Kredensial Valid Dan Submit Login" owner="TokenMonitoringLibrary">
 <doc>Memasukkan username dan password valid lalu submit form.</doc>
-<status status="PASS" start="2026-11-18T18:24:13.168878" elapsed="3.265670"/>
+<status status="PASS" start="2026-11-19T02:34:40.815417" elapsed="0.339530"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:13.168518" elapsed="3.266203"/>
+<status status="PASS" start="2026-11-19T02:34:40.814943" elapsed="0.340190"/>
 </kw>
 <kw name="Then Halaman Teralihkan Ke Dashboard Dengan Judul Dan Subtitle Yang Tepat" owner="token_monitoring_keywords">
 <kw name="UI Verifikasi Tampilan Halaman Dashboard Dan Header" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:19.644279" level="INFO">DOM Verification Passed: Dashboard Title, Subtitle, Logout, and Tab Insight active.</msg>
+<msg time="2026-11-19T02:34:41.607790" level="INFO">DOM Verification Passed: Dashboard Title, Subtitle, Logout, and Tab Insight active.</msg>
 <doc>Memverifikasi pengalihan ke URL /dashboard?tab=insight dan judul header.</doc>
-<status status="PASS" start="2026-11-18T18:24:16.435552" elapsed="3.208909"/>
+<status status="PASS" start="2026-11-19T02:34:41.156070" elapsed="0.451861"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:16.435164" elapsed="3.209452"/>
+<status status="PASS" start="2026-11-19T02:34:41.155550" elapsed="0.452508"/>
 </kw>
 <kw name="And Cookie Keamanan Sesi Terbentuk Dengan Atribut Lengkap" owner="token_monitoring_keywords">
 <kw name="UI Verifikasi Atribut Cookie Sesi Keamanan" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:19.953091" level="INFO">--- START [SESSION COOKIES AUDIT] | Length=126 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:24:19.953175" level="INFO">{
+<msg time="2026-11-19T02:34:41.616796" level="INFO">--- START [SESSION COOKIES AUDIT] | Length=126 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:34:41.616961" level="INFO">{
   "name": "map_access_token",
   "masked_value": "eyJhbGciOi...***",
   "httpOnly": true,
   "path": "/",
   "sameSite": "Lax"
 }</msg>
-<msg time="2026-11-18T18:24:19.953213" level="INFO">--- END [SESSION COOKIES AUDIT] ---</msg>
+<msg time="2026-11-19T02:34:41.617066" level="INFO">--- END [SESSION COOKIES AUDIT] ---</msg>
 <doc>Memverifikasi cookie map_access_token dan map_refresh_token.</doc>
-<status status="PASS" start="2026-11-18T18:24:19.645408" elapsed="0.307891"/>
+<status status="PASS" start="2026-11-19T02:34:41.608941" elapsed="0.008250"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:19.644988" elapsed="0.308416"/>
+<status status="PASS" start="2026-11-19T02:34:41.608435" elapsed="0.008956"/>
 </kw>
 <kw name="And Database MongoDB Memperbarui Kolom Waktu Login Terakhir Pengguna" owner="token_monitoring_keywords">
 <kw name="DB Verifikasi Waktu Login Terakhir Pada MongoDB" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:20.643547" level="INFO">MongoDB lastLoginAt comparison: Initial='2026-11-18 11:10:56.319000', New='2026-11-18 11:24:16.258000'</msg>
+<msg time="2026-11-19T02:34:45.650448" level="INFO">MongoDB lastLoginAt comparison: Initial='2026-11-18 19:33:39.391000', New='2026-11-18 19:34:41.221000'</msg>
 <doc>Memverifikasi field lastLoginAt di MongoDB client_users terbarui.</doc>
-<status status="PASS" start="2026-11-18T18:24:19.953984" elapsed="0.689702"/>
+<status status="PASS" start="2026-11-19T02:34:41.618303" elapsed="4.032279"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:19.953685" elapsed="0.690118"/>
+<status status="PASS" start="2026-11-19T02:34:41.617840" elapsed="4.032855"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:20.644752" level="INFO">=== [TEARDOWN TEST] TC-001 ===</msg>
-<msg time="2026-11-18T18:24:22.242028" level="INFO">--- START [SUT LOG DELTA: TC-001] | Length=2790 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:24:22.242249" level="INFO">{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:24:11.375Z","x-request-id":"req-1795001051298"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:16.260Z","x-request-id":"req-1795001056175"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:16.356Z","x-request-id":"req-1795001056277"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:16.403Z","x-request-id":"req-1795001056278"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:16.418Z","x-request-id":"req-1795001056280"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:16.420Z","x-request-id":"req-1795001056279"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:16.420Z","x-request-id":"req-1795001056281"}</msg>
-<msg time="2026-11-18T18:24:22.242510" level="INFO">--- END [SUT LOG DELTA: TC-001] ---</msg>
+<msg time="2026-11-19T02:34:45.651887" level="INFO">=== [TEARDOWN TEST] TC-001 ===</msg>
+<msg time="2026-11-19T02:34:49.221093" level="INFO">--- START [SUT LOG DELTA: TC-001] | Length=3117 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:34:49.221242" level="INFO">{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:34:40.669Z","x-request-id":"req-1795030480514"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:41.222Z","x-request-id":"req-1795030481146"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:41.308Z","x-request-id":"req-1795030481262"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:41.372Z","x-request-id":"req-1795030481262"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:41.372Z","x-request-id":"req-1795030481263"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:41.373Z","x-request-id":"req-1795030481263"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:41.373Z","x-request-id":"req-1795030481263"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/healthz","requestType":"health","sourceSystem":"","statusCode":200,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:34:44.252Z","x-request-id":"965396b11695b7b652b229997742f7f7"}</msg>
+<msg time="2026-11-19T02:34:49.221408" level="INFO">--- END [SUT LOG DELTA: TC-001] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:24:20.644635" elapsed="1.600217"/>
+<status status="PASS" start="2026-11-19T02:34:45.651720" elapsed="3.572165"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:20.644292" elapsed="1.600706"/>
+<status status="PASS" start="2026-11-19T02:34:45.651182" elapsed="3.572873"/>
 </kw>
 <tag>auth</tag>
 <tag>happy_path</tag>
@@ -94,76 +95,94 @@
 <tag>P0</tag>
 <tag>session</tag>
 <tag>TC-001</tag>
-<status status="PASS" start="2026-11-18T18:24:06.259814" elapsed="15.985349"/>
+<status status="PASS" start="2026-11-19T02:34:19.624851" elapsed="29.599352"/>
 </test>
 <test id="s1-s1-t2" name="TC-002 Verifikasi Tab Insight Memuat Metrik Ringkasan Dan Grafik Batang Untuk Rentang Waktu 12 Bulan" line="21">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:23.567628" level="INFO">SSH Log baseline offset: 8596412 bytes</msg>
-<msg time="2026-11-18T18:24:23.872422" level="INFO">=== [START TEST SETUP] TC-002 ===</msg>
+<msg time="2026-11-19T02:34:51.388779" level="INFO">SSH Log baseline offset: 9177522 bytes</msg>
+<msg time="2026-11-19T02:34:51.395257" level="INFO">=== [START TEST SETUP] TC-002 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:24:22.253154" elapsed="1.619415"/>
+<status status="PASS" start="2026-11-19T02:34:49.233896" elapsed="2.161532"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:22.252698" elapsed="1.619995"/>
+<status status="PASS" start="2026-11-19T02:34:49.233541" elapsed="2.162050"/>
 </kw>
 <kw name="Given Pengguna Berada Di Tab Insight Pada Halaman Dashboard" owner="token_monitoring_keywords">
 <kw name="UI Pastikan Berada Pada Tab Insight Dashboard" owner="TokenMonitoringLibrary">
 <doc>Memastikan berada di tab Insight.</doc>
-<status status="PASS" start="2026-11-18T18:24:23.873349" elapsed="2.657214"/>
+<status status="PASS" start="2026-11-19T02:34:51.396660" elapsed="3.766440"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:23.873017" elapsed="2.657801"/>
+<status status="PASS" start="2026-11-19T02:34:51.396020" elapsed="3.767294"/>
 </kw>
 <kw name="When Judul Kartu Grafik Dan Jumlah Batang 12 Bulan Terverifikasi Sempurna" owner="token_monitoring_keywords">
 <kw name="UI Verifikasi Kartu Grafik Insight Dan Batang Bulanan" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:26.859758" level="INFO">Insight Chart Headers: ['Token Usage (Last 12 Months)', 'Token Balance (Last 12 Months)']</msg>
-<msg time="2026-11-18T18:24:26.868379" level="INFO">Insight Chart Points Verified: Exactly 12 monthly bars: ['2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11']</msg>
+<msg time="2026-11-19T02:34:55.194666" level="INFO">Insight Chart Headers: ['Token Usage (Last 12 Months)', 'Token Balance (Last 12 Months)']</msg>
+<msg time="2026-11-19T02:34:55.247159" level="INFO">Insight Chart Points Verified: Exactly 12 monthly bars: ['2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11']</msg>
 <doc>Memverifikasi judul grafik dan 12 batang data.</doc>
-<status status="PASS" start="2026-11-18T18:24:26.531644" elapsed="0.336866"/>
+<status status="PASS" start="2026-11-19T02:34:55.164139" elapsed="0.083179"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:26.531193" elapsed="0.337442"/>
+<status status="PASS" start="2026-11-19T02:34:55.163675" elapsed="0.083768"/>
 </kw>
 <kw name="Then Kueri SQL Independen Berbatas Rentang Eksplisit Cocok Sempurna Dengan Metrik UI" owner="token_monitoring_keywords">
 <kw name="DB Verifikasi Agregasi SQL 12 Bulan Cocok Dengan Metrik UI" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:27.540995" level="INFO">UI Metrics Scraped: {'Usage': '12.843', 'Top-Up': '187.498', 'Token Balance': '5.555'}</msg>
-<msg time="2026-11-18T18:24:29.944867" level="INFO">--- START [COMPARISON RESULT: TC-002] | Length=266 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:24:29.944956" level="INFO">{
-  "Usage": {
-    "SQL": 12843.77,
-    "Formatted": "12.843",
-    "UI": "12.843"
+<msg time="2026-11-19T02:34:57.875422" level="INFO">UI Metrics Scraped: {'Usage': '12.843', 'Top-Up': '187.498', 'Token Balance': '5.555'}, Secondary Growth: 'Token change month-over-month increased by 81.99 percent.+81,99%'</msg>
+<msg time="2026-11-19T02:34:58.030104" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:34:58.030194" level="INFO"> TRANSPARENT PAYLOAD AUDIT: TC-002 Insight 12 Months SQL vs API vs UI</msg>
+<msg time="2026-11-19T02:34:58.030245" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:34:58.030332" level="INFO">--- START [EXPECTED PAYLOAD] TC-002 Insight 12 Months SQL vs API vs UI | Length=297 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:34:58.030365" level="INFO">{
+  "SQL_expected_exact": {
+    "usageTokens": 12843.77,
+    "topUpTokens": 187498.88,
+    "endingBalanceTokens": 5555.56,
+    "growthPercentage": 81.99
   },
-  "Top-Up": {
-    "SQL": 187498.88,
-    "Formatted": "187.498",
-    "UI": "187.498"
-  },
-  "Token Balance": {
-    "SQL": 5555.56,
-    "Formatted": "5.555",
-    "UI": "5.555"
+  "UI_expected_floored": {
+    "Usage": "12.843",
+    "Top-Up": "187.498",
+    "Token Balance": "5.555",
+    "growthBadge": "+81,99%"
   }
 }</msg>
-<msg time="2026-11-18T18:24:29.944997" level="INFO">--- END [COMPARISON RESULT: TC-002] ---</msg>
-<doc>Melakukan kueri independen SQL summary_monthly dengan batas eksplisit dan membandingkan dengan UI.</doc>
-<status status="PASS" start="2026-11-18T18:24:26.869357" elapsed="3.075732"/>
+<msg time="2026-11-19T02:34:58.030394" level="INFO">--- END [EXPECTED PAYLOAD] TC-002 Insight 12 Months SQL vs API vs UI ---</msg>
+<msg time="2026-11-19T02:34:58.030444" level="INFO">--- START [ACTUAL PAYLOAD] TC-002 Insight 12 Months SQL vs API vs UI | Length=348 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:34:58.030473" level="INFO">{
+  "API_actual_network": {
+    "usageTokens": 12843.77,
+    "topUpTokens": 187498.88,
+    "endingBalanceTokens": 5555.56,
+    "growthPercentage": 81.99
+  },
+  "UI_actual_dom": {
+    "Usage": "12.843",
+    "Top-Up": "187.498",
+    "Token Balance": "5.555",
+    "growthBadge": "Token change month-over-month increased by 81.99 percent.+81,99%"
+  }
+}</msg>
+<msg time="2026-11-19T02:34:58.030502" level="INFO">--- END [ACTUAL PAYLOAD] TC-002 Insight 12 Months SQL vs API vs UI ---</msg>
+<msg time="2026-11-19T02:34:58.030528" level="INFO">--- [COMPARISON RESULT: TC-002 Insight 12 Months SQL vs API vs UI] PASS - 100% MATCH (All fields identical) ---</msg>
+<msg time="2026-11-19T02:34:58.030552" level="INFO">================================================================================</msg>
+<doc>Melakukan kueri independen SQL summary_monthly dengan batas eksplisit dan membandingkan dengan UI serta API.</doc>
+<status status="PASS" start="2026-11-19T02:34:55.248119" elapsed="2.782527"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:26.868982" elapsed="3.076226"/>
+<status status="PASS" start="2026-11-19T02:34:55.247769" elapsed="2.782991"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:29.946553" level="INFO">=== [TEARDOWN TEST] TC-002 ===</msg>
-<msg time="2026-11-18T18:24:31.790085" level="INFO">--- START [SUT LOG DELTA: TC-002] | Length=2456 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:24:31.790194" level="INFO">{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:24.536Z","x-request-id":"req-1795001064477"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:24.627Z","x-request-id":"req-1795001064544"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:24.627Z","x-request-id":"req-1795001064545"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:24.628Z","x-request-id":"req-1795001064545"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:24.629Z","x-request-id":"req-1795001064545"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:24.955Z","x-request-id":"req-1795001064544"}</msg>
-<msg time="2026-11-18T18:24:31.790280" level="INFO">--- END [SUT LOG DELTA: TC-002] ---</msg>
+<msg time="2026-11-19T02:34:58.031693" level="INFO">=== [TEARDOWN TEST] TC-002 ===</msg>
+<msg time="2026-11-19T02:35:01.520011" level="INFO">--- START [SUT LOG DELTA: TC-002] | Length=2456 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:35:01.520136" level="INFO">{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:51.954Z","x-request-id":"req-1795030491887"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:52.842Z","x-request-id":"req-1795030492676"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:52.847Z","x-request-id":"req-1795030492678"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:52.847Z","x-request-id":"req-1795030492679"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:52.849Z","x-request-id":"req-1795030492680"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:34:53.400Z","x-request-id":"req-1795030492677"}</msg>
+<msg time="2026-11-19T02:35:01.520264" level="INFO">--- END [SUT LOG DELTA: TC-002] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:24:29.946309" elapsed="1.845903"/>
+<status status="PASS" start="2026-11-19T02:34:58.031577" elapsed="3.491476"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:29.945720" elapsed="1.846638"/>
+<status status="PASS" start="2026-11-19T02:34:58.031202" elapsed="3.492139"/>
 </kw>
 <tag>dashboard</tag>
 <tag>happy_path</tag>
@@ -172,71 +191,94 @@
 <tag>P0</tag>
 <tag>summary_mysql</tag>
 <tag>TC-002</tag>
-<status status="PASS" start="2026-11-18T18:24:22.251879" elapsed="9.540596"/>
+<status status="PASS" start="2026-11-19T02:34:49.232748" elapsed="12.290802"/>
 </test>
 <test id="s1-s1-t3" name="TC-003 Verifikasi Tab Token Stats Memuat Daftar 12 Bulan Pada Dropdown Dan Grafik Harian Bulan Berjalan" line="27">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:32.998653" level="INFO">SSH Log baseline offset: 8598869 bytes</msg>
-<msg time="2026-11-18T18:24:33.303906" level="INFO">=== [START TEST SETUP] TC-003 ===</msg>
+<msg time="2026-11-19T02:35:04.549742" level="INFO">SSH Log baseline offset: 9179979 bytes</msg>
+<msg time="2026-11-19T02:35:04.555170" level="INFO">=== [START TEST SETUP] TC-003 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:24:31.799433" elapsed="1.504622"/>
+<status status="PASS" start="2026-11-19T02:35:01.531897" elapsed="3.023443"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:31.799063" elapsed="1.505114"/>
+<status status="PASS" start="2026-11-19T02:35:01.531557" elapsed="3.023937"/>
 </kw>
 <kw name="Given Pengguna Berada Di Tab Insight Pada Halaman Dashboard" owner="token_monitoring_keywords">
 <kw name="UI Pastikan Berada Pada Tab Insight Dashboard" owner="TokenMonitoringLibrary">
 <doc>Memastikan berada di tab Insight.</doc>
-<status status="PASS" start="2026-11-18T18:24:33.304851" elapsed="2.432524"/>
+<status status="PASS" start="2026-11-19T02:35:04.556300" elapsed="2.438732"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:33.304536" elapsed="2.433056"/>
+<status status="PASS" start="2026-11-19T02:35:04.555876" elapsed="2.439295"/>
 </kw>
 <kw name="When Pengguna Berpindah Ke Tab Token Stats" owner="token_monitoring_keywords">
 <kw name="UI Navigasi Ke Tab Token Stats Dashboard" owner="TokenMonitoringLibrary">
 <doc>Mengklik tab navigasi Token Stats.</doc>
-<status status="PASS" start="2026-11-18T18:24:35.738572" elapsed="1.380821"/>
+<status status="PASS" start="2026-11-19T02:35:06.995830" elapsed="0.447449"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:35.738003" elapsed="1.381530"/>
+<status status="PASS" start="2026-11-19T02:35:06.995474" elapsed="0.447938"/>
 </kw>
 <kw name="Then Dropdown Bulan Memuat Tepat 12 Opsi Terurut Kronologis Dan Default Terpilih Bulan Berjalan" owner="token_monitoring_keywords">
 <kw name="UI Verifikasi Opsi Dropdown 12 Bulan Kronologis" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:38.256284" level="INFO">Dropdown Option Values (12): ['2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11']</msg>
+<msg time="2026-11-19T02:35:07.613682" level="INFO">Dropdown Option Values (12): ['2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11']</msg>
 <doc>Memverifikasi dropdown #dashboard-token-stats-month berisi 12 opsi kronologis.</doc>
-<status status="PASS" start="2026-11-18T18:24:37.120278" elapsed="1.142535"/>
+<status status="PASS" start="2026-11-19T02:35:07.444040" elapsed="0.176372"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:37.119915" elapsed="1.143047"/>
+<status status="PASS" start="2026-11-19T02:35:07.443705" elapsed="0.176851"/>
 </kw>
 <kw name="And Kueri SQL Independen Daftar Bulan Dan Harian November Sesuai Sempurna" owner="token_monitoring_keywords">
 <kw name="DB Verifikasi Daftar 12 Bulan Dan Harian November Pada SQL" owner="TokenMonitoringLibrary">
+<msg time="2026-11-19T02:35:10.774686" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:35:10.774789" level="INFO"> TRANSPARENT PAYLOAD AUDIT: TC-003 Dropdown 12 Months &amp; Active Months in SQL</msg>
+<msg time="2026-11-19T02:35:10.774836" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:35:10.774913" level="INFO">--- START [EXPECTED PAYLOAD] TC-003 Dropdown 12 Months &amp; Active Months in SQL | Length=194 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:35:10.774954" level="INFO">{
+  "dropdown_options_count": 12,
+  "database_active_months_count": 11,
+  "database_december_2025_active_rows": 0,
+  "november_usage_tokens_exact": 692.73,
+  "november_usage_ui_floored": "692"
+}</msg>
+<msg time="2026-11-19T02:35:10.774989" level="INFO">--- END [EXPECTED PAYLOAD] TC-003 Dropdown 12 Months &amp; Active Months in SQL ---</msg>
+<msg time="2026-11-19T02:35:10.775041" level="INFO">--- START [ACTUAL PAYLOAD] TC-003 Dropdown 12 Months &amp; Active Months in SQL | Length=152 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:35:10.775076" level="INFO">{
+  "dropdown_options_count": 12,
+  "database_active_months_count": 11,
+  "database_december_2025_active_rows": 0,
+  "november_usage_ui_actual": "692"
+}</msg>
+<msg time="2026-11-19T02:35:10.775107" level="INFO">--- END [ACTUAL PAYLOAD] TC-003 Dropdown 12 Months &amp; Active Months in SQL ---</msg>
+<msg time="2026-11-19T02:35:10.775138" level="INFO">--- [COMPARISON RESULT: TC-003 Dropdown 12 Months &amp; Active Months in SQL] PASS - 100% MATCH (All fields identical) ---</msg>
+<msg time="2026-11-19T02:35:10.775168" level="INFO">================================================================================</msg>
 <doc>Mencocokkan daftar 12 bulan dan agregasi November dari database SQL.</doc>
-<status status="PASS" start="2026-11-18T18:24:38.263752" elapsed="1.553720"/>
+<status status="PASS" start="2026-11-19T02:35:07.621370" elapsed="3.153905"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:38.263367" elapsed="1.554301"/>
+<status status="PASS" start="2026-11-19T02:35:07.620884" elapsed="3.154529"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:39.818666" level="INFO">=== [TEARDOWN TEST] TC-003 ===</msg>
-<msg time="2026-11-18T18:24:41.369646" level="INFO">--- START [SUT LOG DELTA: TC-003] | Length=4974 chars | Parts=2 ---</msg>
-<msg time="2026-11-18T18:24:41.369745" level="INFO">[[SUT LOG DELTA: TC-003] | PART 1/2]
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:34.129Z","x-request-id":"req-1795001073734"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:34.219Z","x-request-id":"req-1795001074133"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:34.219Z","x-request-id":"req-1795001074130"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:34.219Z","x-request-id":"req-1795001074132"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:34.220Z","x-request-id":"req-1795001074131"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:34.220Z","x-request-id":"req-1795001074134"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/months","requestType":"tokenStatsMonths","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:36.899Z","x-request-id":"req-1795001076815"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:36.988Z","x-request-id":"req-1795001076891"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:36.988Z","x-request-id":"req-1795001076891"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,</msg>
-<msg time="2026-11-18T18:24:41.369820" level="INFO">[[SUT LOG DELTA: TC-003] | PART 2/2]
-"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:36.989Z","x-request-id":"req-1795001076893"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:36.989Z","x-request-id":"req-1795001076894"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":6,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:36.991Z","x-request-id":"req-1795001076892"}</msg>
-<msg time="2026-11-18T18:24:41.369858" level="INFO">--- END [SUT LOG DELTA: TC-003] ---</msg>
+<msg time="2026-11-19T02:35:10.776442" level="INFO">=== [TEARDOWN TEST] TC-003 ===</msg>
+<msg time="2026-11-19T02:35:15.410292" level="INFO">--- START [SUT LOG DELTA: TC-003] | Length=5301 chars | Parts=2 ---</msg>
+<msg time="2026-11-19T02:35:15.410429" level="INFO">[[SUT LOG DELTA: TC-003] | PART 1/2]
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:05.451Z","x-request-id":"req-1795030505309"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:06.335Z","x-request-id":"req-1795030506241"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":3,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:06.335Z","x-request-id":"req-1795030506244"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":3,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:06.335Z","x-request-id":"req-1795030506244"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":6,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:06.336Z","x-request-id":"req-1795030506243"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:06.337Z","x-request-id":"req-1795030506245"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/months","requestType":"tokenStatsMonths","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:07.188Z","x-request-id":"req-1795030507118"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:07.500Z","x-request-id":"req-1795030507370"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:07.500Z","x-request-id":"req-1795030507369"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":2,</msg>
+<msg time="2026-11-19T02:35:15.410568" level="INFO">[[SUT LOG DELTA: TC-003] | PART 2/2]
+"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:07.519Z","x-request-id":"req-1795030507371"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:07.519Z","x-request-id":"req-1795030507370"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:07.529Z","x-request-id":"req-1795030507372"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/healthz","requestType":"health","sourceSystem":"","statusCode":200,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:35:14.328Z","x-request-id":"235d40b7893d3f89341cb2685c846c49"}</msg>
+<msg time="2026-11-19T02:35:15.410636" level="INFO">--- END [SUT LOG DELTA: TC-003] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:24:39.818546" elapsed="1.553346"/>
+<status status="PASS" start="2026-11-19T02:35:10.776296" elapsed="4.637302"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:39.818152" elapsed="1.553892"/>
+<status status="PASS" start="2026-11-19T02:35:10.775863" elapsed="4.637955"/>
 </kw>
 <tag>dashboard</tag>
 <tag>happy_path</tag>
@@ -245,61 +287,95 @@
 <tag>summary_mysql</tag>
 <tag>TC-003</tag>
 <tag>token_stats</tag>
-<status status="PASS" start="2026-11-18T18:24:31.798392" elapsed="9.573766"/>
+<status status="PASS" start="2026-11-19T02:35:01.530926" elapsed="13.883065"/>
 </test>
 <test id="s1-s1-t4" name="TC-004 Verifikasi Perubahan Pilihan Bulan Pada Dropdown Memperbarui Ringkasan Metrik Dan Grafik Harian" line="34">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:42.697972" level="INFO">SSH Log baseline offset: 8603844 bytes</msg>
-<msg time="2026-11-18T18:24:43.003544" level="INFO">=== [START TEST SETUP] TC-004 ===</msg>
+<msg time="2026-11-19T02:35:20.580953" level="INFO">SSH Log baseline offset: 9185281 bytes</msg>
+<msg time="2026-11-19T02:35:20.586946" level="INFO">=== [START TEST SETUP] TC-004 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:24:41.379293" elapsed="1.624397"/>
+<status status="PASS" start="2026-11-19T02:35:15.426443" elapsed="5.160646"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:41.378913" elapsed="1.624904"/>
+<status status="PASS" start="2026-11-19T02:35:15.425810" elapsed="5.161402"/>
 </kw>
 <kw name="Given Pengguna Berpindah Ke Tab Token Stats" owner="token_monitoring_keywords">
 <kw name="UI Navigasi Ke Tab Token Stats Dashboard" owner="TokenMonitoringLibrary">
 <doc>Mengklik tab navigasi Token Stats.</doc>
-<status status="PASS" start="2026-11-18T18:24:43.004512" elapsed="1.319990"/>
+<status status="PASS" start="2026-11-19T02:35:20.587871" elapsed="0.138543"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:43.004164" elapsed="1.320497"/>
+<status status="PASS" start="2026-11-19T02:35:20.587535" elapsed="0.139028"/>
 </kw>
 <kw name="When Pengguna Memilih Bulan Oktober 2026 Pada Dropdown Toolbar" owner="token_monitoring_keywords">
 <kw name="UI Pilih Opsi Bulan Oktober Pada Dropdown" owner="TokenMonitoringLibrary">
 <doc>Memilih opsi 2026-10 pada dropdown.</doc>
-<status status="PASS" start="2026-11-18T18:24:44.325354" elapsed="1.786175"/>
+<status status="PASS" start="2026-11-19T02:35:20.727190" elapsed="0.705268"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:44.324972" elapsed="1.786708"/>
+<status status="PASS" start="2026-11-19T02:35:20.726861" elapsed="0.705767"/>
 </kw>
 <kw name="Then Permintaan Jaringan AJAX Terkirim Dengan Parameter Query Month 2026-10" owner="token_monitoring_keywords">
 <kw name="UI Verifikasi Permintaan Jaringan AJAX Bulan Oktober" owner="TokenMonitoringLibrary">
 <doc>Memverifikasi request AJAX membawa parameter month=2026-10.</doc>
-<status status="PASS" start="2026-11-18T18:24:46.112334" elapsed="0.305762"/>
+<status status="PASS" start="2026-11-19T02:35:21.433507" elapsed="0.005722"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:46.111997" elapsed="0.306265"/>
+<status status="PASS" start="2026-11-19T02:35:21.433063" elapsed="0.006334"/>
 </kw>
 <kw name="And Metrik Dan Grafik Harian Diperbarui Sesuai Data Oktober Tanpa Residu November" owner="token_monitoring_keywords">
 <kw name="DB Verifikasi Metrik Dan Grafik Harian Oktober Pada SQL" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:50.220520" level="INFO">October UI Metrics: {'Usage': '1.357', 'Top-Up': '14.010', 'Token Balance': '3.052'}</msg>
+<msg time="2026-11-19T02:35:22.284470" level="INFO">October UI Metrics: {'Usage': '1.357', 'Top-Up': '14.010', 'Token Balance': '3.052'}</msg>
+<msg time="2026-11-19T02:35:22.284616" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:35:22.284669" level="INFO"> TRANSPARENT PAYLOAD AUDIT: TC-004 October Filter SQL vs AJAX vs UI</msg>
+<msg time="2026-11-19T02:35:22.284711" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:35:22.284806" level="INFO">--- START [EXPECTED PAYLOAD] TC-004 October Filter SQL vs AJAX vs UI | Length=238 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:35:22.284852" level="INFO">{
+  "exact_floats": {
+    "usageTokens": 1357.47,
+    "topUpTokens": 14010.53,
+    "endingBalanceTokens": 3052.72,
+    "day_count": 31
+  },
+  "ui_floored": {
+    "Usage": "1.357",
+    "Top-Up": "14.010",
+    "Token Balance": "3.052"
+  }
+}</msg>
+<msg time="2026-11-19T02:35:22.284893" level="INFO">--- END [EXPECTED PAYLOAD] TC-004 October Filter SQL vs AJAX vs UI ---</msg>
+<msg time="2026-11-19T02:35:22.284957" level="INFO">--- START [ACTUAL PAYLOAD] TC-004 October Filter SQL vs AJAX vs UI | Length=221 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:35:22.284998" level="INFO">{
+  "api_actual_floats": {
+    "usageTokens": 1357.47,
+    "topUpTokens": 14010.53,
+    "endingBalanceTokens": 3052.72
+  },
+  "ui_actual": {
+    "Usage": "1.357",
+    "Top-Up": "14.010",
+    "Token Balance": "3.052"
+  }
+}</msg>
+<msg time="2026-11-19T02:35:22.285039" level="INFO">--- END [ACTUAL PAYLOAD] TC-004 October Filter SQL vs AJAX vs UI ---</msg>
+<msg time="2026-11-19T02:35:22.285077" level="INFO">--- [COMPARISON RESULT: TC-004 October Filter SQL vs AJAX vs UI] PASS - 100% MATCH (All fields identical) ---</msg>
+<msg time="2026-11-19T02:35:22.285115" level="INFO">================================================================================</msg>
 <doc>Memverifikasi metrik UI dan grafik 31 hari Oktober cocok dengan SQL.</doc>
-<status status="PASS" start="2026-11-18T18:24:46.419103" elapsed="3.801569"/>
+<status status="PASS" start="2026-11-19T02:35:21.440232" elapsed="0.844976"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:46.418630" elapsed="3.802169"/>
+<status status="PASS" start="2026-11-19T02:35:21.439782" elapsed="0.845576"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:50.221751" level="INFO">=== [TEARDOWN TEST] TC-004 ===</msg>
-<msg time="2026-11-18T18:24:52.025474" level="INFO">--- START [SUT LOG DELTA: TC-004] | Length=2109 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:24:52.025573" level="INFO">{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:45.412Z","x-request-id":"req-1795001085350"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:45.426Z","x-request-id":"req-1795001085351"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:45.699Z","x-request-id":"req-1795001085352"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:45.699Z","x-request-id":"req-1795001085353"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:45.699Z","x-request-id":"req-1795001085352"}</msg>
-<msg time="2026-11-18T18:24:52.025626" level="INFO">--- END [SUT LOG DELTA: TC-004] ---</msg>
+<msg time="2026-11-19T02:35:22.286442" level="INFO">=== [TEARDOWN TEST] TC-004 ===</msg>
+<msg time="2026-11-19T02:35:26.766436" level="INFO">--- START [SUT LOG DELTA: TC-004] | Length=2109 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:35:26.766605" level="INFO">{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:20.872Z","x-request-id":"req-1795030520803"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:20.872Z","x-request-id":"req-1795030520802"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:20.872Z","x-request-id":"req-1795030520803"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:20.881Z","x-request-id":"req-1795030520804"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:20.881Z","x-request-id":"req-1795030520804"}</msg>
+<msg time="2026-11-19T02:35:26.766728" level="INFO">--- END [SUT LOG DELTA: TC-004] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:24:50.221617" elapsed="1.806084"/>
+<status status="PASS" start="2026-11-19T02:35:22.286291" elapsed="4.483207"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:50.221252" elapsed="1.806593"/>
+<status status="PASS" start="2026-11-19T02:35:22.285813" elapsed="4.483886"/>
 </kw>
 <tag>ajax</tag>
 <tag>dashboard</tag>
@@ -308,55 +384,76 @@
 <tag>P1</tag>
 <tag>TC-004</tag>
 <tag>token_stats</tag>
-<status status="PASS" start="2026-11-18T18:24:41.378302" elapsed="10.649681"/>
+<status status="PASS" start="2026-11-19T02:35:15.424768" elapsed="11.345137"/>
 </test>
 <test id="s1-s1-t5" name="TC-005 Verifikasi Teks Data Freshness Di Header Dashboard Sesuai Data Checkpoint Pemrosesan Database" line="41">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:54.279790" level="INFO">SSH Log baseline offset: 8606281 bytes</msg>
-<msg time="2026-11-18T18:24:54.584246" level="INFO">=== [START TEST SETUP] TC-005 ===</msg>
+<msg time="2026-11-19T02:35:34.958354" level="INFO">SSH Log baseline offset: 9187391 bytes</msg>
+<msg time="2026-11-19T02:35:34.963299" level="INFO">=== [START TEST SETUP] TC-005 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:24:52.036892" elapsed="2.547515"/>
+<status status="PASS" start="2026-11-19T02:35:26.780342" elapsed="8.183100"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:52.036532" elapsed="2.548001"/>
+<status status="PASS" start="2026-11-19T02:35:26.779981" elapsed="8.183589"/>
 </kw>
 <kw name="Given Pengguna Berada Di Tab Insight Pada Halaman Dashboard" owner="token_monitoring_keywords">
 <kw name="UI Pastikan Berada Pada Tab Insight Dashboard" owner="TokenMonitoringLibrary">
 <doc>Memastikan berada di tab Insight.</doc>
-<status status="PASS" start="2026-11-18T18:24:54.585710" elapsed="1.325920"/>
+<status status="PASS" start="2026-11-19T02:35:34.964529" elapsed="0.177175"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:54.584944" elapsed="1.326841"/>
+<status status="PASS" start="2026-11-19T02:35:34.963938" elapsed="0.177957"/>
 </kw>
 <kw name="When Indikator Kesegaran Data Menampilkan Format Tanggal Dan Jam WIB" owner="token_monitoring_keywords">
 <kw name="UI Verifikasi Tampilan Teks Data Freshness" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:56.929247" level="INFO">Data Freshness Text: 'Data per 18 Nov 2026, 00.00 WIB'</msg>
+<msg time="2026-11-19T02:35:35.201526" level="INFO">Data Freshness Text: 'Data per 18 Nov 2026, 00.00 WIB'</msg>
 <doc>Memverifikasi elemen data-freshness berbunyi 'Data per 18 Nov 2026, 00.00 WIB'.</doc>
-<status status="PASS" start="2026-11-18T18:24:55.912505" elapsed="1.028689"/>
+<status status="PASS" start="2026-11-19T02:35:35.142687" elapsed="0.067949"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:55.912123" elapsed="1.029256"/>
+<status status="PASS" start="2026-11-19T02:35:35.142267" elapsed="0.068543"/>
 </kw>
 <kw name="Then Kontrak Zona Waktu Asia Jakarta Terbukti Selaras Antara Database Dan API" owner="token_monitoring_keywords">
 <kw name="DB Verifikasi Kontrak Checkpoint Dan Zona Waktu Asia Jakarta" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:58.319131" level="INFO">Raw Database summary_as_of: '2026-11-18 00:00:00'</msg>
+<msg time="2026-11-19T02:35:38.863885" level="INFO">MongoDB businessTimezone='Asia/Jakarta', MySQL summary_as_of='2026-11-18 00:00:00'</msg>
+<msg time="2026-11-19T02:35:38.866888" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:35:38.867018" level="INFO"> TRANSPARENT PAYLOAD AUDIT: TC-005 Timezone Multi-Layer Verification</msg>
+<msg time="2026-11-19T02:35:38.867070" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:35:38.867157" level="INFO">--- START [EXPECTED PAYLOAD] TC-005 Timezone Multi-Layer Verification | Length=238 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:35:38.867204" level="INFO">{
+  "MongoDB_client": "mahkamah-agung",
+  "MongoDB_businessTimezone": "Asia/Jakarta",
+  "MySQL_checkpoint_DATETIME": "2026-11-18 00:00:00",
+  "BFF_ISO_timezone_offset": "+07:00",
+  "UI_rendered_string": "Data per 18 Nov 2026, 00.00 WIB"
+}</msg>
+<msg time="2026-11-19T02:35:38.867265" level="INFO">--- END [EXPECTED PAYLOAD] TC-005 Timezone Multi-Layer Verification ---</msg>
+<msg time="2026-11-19T02:35:38.867328" level="INFO">--- START [ACTUAL PAYLOAD] TC-005 Timezone Multi-Layer Verification | Length=126 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:35:38.867369" level="INFO">{
+  "MongoDB_actual_tz": "Asia/Jakarta",
+  "MySQL_actual_checkpoint": "2026-11-18 00:00:00",
+  "UI_freshness_verified": true
+}</msg>
+<msg time="2026-11-19T02:35:38.867408" level="INFO">--- END [ACTUAL PAYLOAD] TC-005 Timezone Multi-Layer Verification ---</msg>
+<msg time="2026-11-19T02:35:38.867445" level="INFO">--- [COMPARISON RESULT: TC-005 Timezone Multi-Layer Verification] PASS - 100% MATCH (All fields identical) ---</msg>
+<msg time="2026-11-19T02:35:38.867481" level="INFO">================================================================================</msg>
 <doc>Membaca checkpoint database dan membandingkan dengan metadata API.</doc>
-<status status="PASS" start="2026-11-18T18:24:56.942294" elapsed="1.379196"/>
+<status status="PASS" start="2026-11-19T02:35:35.211597" elapsed="3.655979"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:56.941784" elapsed="1.379856"/>
+<status status="PASS" start="2026-11-19T02:35:35.211165" elapsed="3.656578"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:24:58.322522" level="INFO">=== [TEARDOWN TEST] TC-005 ===</msg>
-<msg time="2026-11-18T18:25:00.615768" level="INFO">--- START [SUT LOG DELTA: TC-005] | Length=2074 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:25:00.615860" level="INFO">{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:55.026Z","x-request-id":"req-1795001094955"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:55.026Z","x-request-id":"req-1795001094956"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:55.027Z","x-request-id":"req-1795001094955"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:55.298Z","x-request-id":"req-1795001094956"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:24:55.314Z","x-request-id":"req-1795001094956"}</msg>
-<msg time="2026-11-18T18:25:00.615933" level="INFO">--- END [SUT LOG DELTA: TC-005] ---</msg>
+<msg time="2026-11-19T02:35:38.869006" level="INFO">=== [TEARDOWN TEST] TC-005 ===</msg>
+<msg time="2026-11-19T02:35:42.340598" level="INFO">--- START [SUT LOG DELTA: TC-005] | Length=2074 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:35:42.340753" level="INFO">{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:35.092Z","x-request-id":"req-1795030535033"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:35.092Z","x-request-id":"req-1795030535033"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:35.102Z","x-request-id":"req-1795030535034"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:35.103Z","x-request-id":"req-1795030535034"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:35:35.103Z","x-request-id":"req-1795030535034"}</msg>
+<msg time="2026-11-19T02:35:42.340851" level="INFO">--- END [SUT LOG DELTA: TC-005] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:24:58.322399" elapsed="2.295704"/>
+<status status="PASS" start="2026-11-19T02:35:38.868827" elapsed="3.475269"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:24:58.322009" elapsed="2.296293"/>
+<status status="PASS" start="2026-11-19T02:35:38.868281" elapsed="3.476073"/>
 </kw>
 <tag>dashboard</tag>
 <tag>freshness</tag>
@@ -365,62 +462,62 @@
 <tag>P1</tag>
 <tag>TC-005</tag>
 <tag>timezone</tag>
-<status status="PASS" start="2026-11-18T18:24:52.035195" elapsed="8.583269"/>
+<status status="PASS" start="2026-11-19T02:35:26.779331" elapsed="15.565239"/>
 </test>
 <test id="s1-s1-t6" name="TC-006 Verifikasi Sistem Menolak Login Kredensial Invalid Dan Menampilkan Pesan Error Inline Seragam" line="47">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:02.494034" level="INFO">SSH Log baseline offset: 8608356 bytes</msg>
-<msg time="2026-11-18T18:25:02.798429" level="INFO">=== [START TEST SETUP] TC-006 ===</msg>
+<msg time="2026-11-19T02:35:45.014897" level="INFO">SSH Log baseline offset: 9189793 bytes</msg>
+<msg time="2026-11-19T02:35:45.020375" level="INFO">=== [START TEST SETUP] TC-006 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:25:00.625562" elapsed="2.173010"/>
+<status status="PASS" start="2026-11-19T02:35:42.355528" elapsed="2.664989"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:00.625253" elapsed="2.173440"/>
+<status status="PASS" start="2026-11-19T02:35:42.355149" elapsed="2.665511"/>
 </kw>
 <kw name="Given Pengguna Membuka Halaman Login Web UI" owner="token_monitoring_keywords">
 <kw name="UI Navigasi Ke Halaman Login" owner="TokenMonitoringLibrary">
 <doc>Membuka halaman login via Playwright dengan cookies bersih.</doc>
-<status status="PASS" start="2026-11-18T18:25:02.799399" elapsed="2.073634"/>
+<status status="PASS" start="2026-11-19T02:35:45.021401" elapsed="0.720804"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:02.799043" elapsed="2.074146"/>
+<status status="PASS" start="2026-11-19T02:35:45.020998" elapsed="0.721359"/>
 </kw>
 <kw name="When Pengguna Mengirimkan Kredensial Dengan Password Salah" owner="token_monitoring_keywords">
 <kw name="UI Input Kredensial Password Salah Dan Verifikasi Penolakan" owner="TokenMonitoringLibrary">
 <doc>Submit login dengan password salah.</doc>
-<status status="PASS" start="2026-11-18T18:25:04.873929" elapsed="7.013904"/>
+<status status="PASS" start="2026-11-19T02:35:45.742984" elapsed="3.869768"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:04.873602" elapsed="7.014395"/>
+<status status="PASS" start="2026-11-19T02:35:45.742652" elapsed="3.870263"/>
 </kw>
 <kw name="Then Sistem Menampilkan Pesan Kesalahan Seragam Dan Tidak Menerbitkan Sesi" owner="token_monitoring_keywords">
 <kw name="Log" owner="BuiltIn">
-<msg time="2026-11-18T18:25:11.889345" level="INFO">Verifikasi penolakan login kredensial invalid telah dieksekusi</msg>
+<msg time="2026-11-19T02:35:49.614574" level="INFO">Verifikasi penolakan login kredensial invalid telah dieksekusi</msg>
 <arg>Verifikasi penolakan login kredensial invalid telah dieksekusi</arg>
 <doc>Logs the given message with the given level.</doc>
-<status status="PASS" start="2026-11-18T18:25:11.888748" elapsed="0.000710"/>
+<status status="PASS" start="2026-11-19T02:35:49.613834" elapsed="0.000893"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:11.888360" elapsed="0.001266"/>
+<status status="PASS" start="2026-11-19T02:35:49.613303" elapsed="0.001618"/>
 </kw>
 <kw name="And Pengguna Mengirimkan Kredensial Dengan Akun Yang Tidak Terdaftar" owner="token_monitoring_keywords">
 <kw name="UI Input Kredensial Akun Tidak Terdaftar Dan Verifikasi Penolakan" owner="TokenMonitoringLibrary">
 <doc>Submit login dengan username tidak dikenal.</doc>
-<status status="PASS" start="2026-11-18T18:25:11.890488" elapsed="7.147214"/>
+<status status="PASS" start="2026-11-19T02:35:49.615922" elapsed="2.147945"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:11.890066" elapsed="7.147780"/>
+<status status="PASS" start="2026-11-19T02:35:49.615338" elapsed="2.148705"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:19.039781" level="INFO">=== [TEARDOWN TEST] TC-006 ===</msg>
-<msg time="2026-11-18T18:25:21.145455" level="INFO">--- START [SUT LOG DELTA: TC-006] | Length=1678 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:25:21.145562" level="INFO">{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:03.327Z","x-request-id":"req-1795001103253"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:05.375Z","x-request-id":"req-1795001105290"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":3,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:10.003Z","x-request-id":"req-1795001109914"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:12.574Z","x-request-id":"req-1795001112517"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:17.139Z","x-request-id":"req-1795001117072"}</msg>
-<msg time="2026-11-18T18:25:21.145623" level="INFO">--- END [SUT LOG DELTA: TC-006] ---</msg>
+<msg time="2026-11-19T02:35:51.765759" level="INFO">=== [TEARDOWN TEST] TC-006 ===</msg>
+<msg time="2026-11-19T02:35:58.247680" level="INFO">--- START [SUT LOG DELTA: TC-006] | Length=1678 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:35:58.247796" level="INFO">{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:35:45.408Z","x-request-id":"req-1795030545355"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:35:47.569Z","x-request-id":"req-1795030547390"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":3,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:35:48.619Z","x-request-id":"req-1795030548540"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:35:50.128Z","x-request-id":"req-1795030550057"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:35:50.778Z","x-request-id":"req-1795030550690"}</msg>
+<msg time="2026-11-19T02:35:58.247864" level="INFO">--- END [SUT LOG DELTA: TC-006] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:25:19.039401" elapsed="2.108337"/>
+<status status="PASS" start="2026-11-19T02:35:51.765503" elapsed="6.484861"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:19.038452" elapsed="2.109435"/>
+<status status="PASS" start="2026-11-19T02:35:51.764687" elapsed="6.485859"/>
 </kw>
 <tag>auth</tag>
 <tag>login</tag>
@@ -428,66 +525,65 @@
 <tag>P1</tag>
 <tag>security</tag>
 <tag>TC-006</tag>
-<status status="PASS" start="2026-11-18T18:25:00.624623" elapsed="20.523411"/>
+<status status="PASS" start="2026-11-19T02:35:42.354459" elapsed="15.896253"/>
 </test>
 <test id="s1-s1-t7" name="TC-007 Verifikasi Form Login Menahan Submit Saat Field Kosong Serta Backend Menolak Request Kosong" line="54">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:22.673128" level="INFO">SSH Log baseline offset: 8610035 bytes</msg>
-<msg time="2026-11-18T18:25:22.977867" level="INFO">=== [START TEST SETUP] TC-007 ===</msg>
+<msg time="2026-11-19T02:36:00.459186" level="INFO">SSH Log baseline offset: 9191472 bytes</msg>
+<msg time="2026-11-19T02:36:00.467570" level="INFO">=== [START TEST SETUP] TC-007 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:25:21.155090" elapsed="1.822925"/>
+<status status="PASS" start="2026-11-19T02:35:58.264349" elapsed="2.203401"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:21.154646" elapsed="1.823507"/>
+<status status="PASS" start="2026-11-19T02:35:58.262357" elapsed="2.205566"/>
 </kw>
 <kw name="Given Pengguna Membuka Halaman Login Web UI" owner="token_monitoring_keywords">
 <kw name="UI Navigasi Ke Halaman Login" owner="TokenMonitoringLibrary">
 <doc>Membuka halaman login via Playwright dengan cookies bersih.</doc>
-<status status="PASS" start="2026-11-18T18:25:22.978985" elapsed="2.019717"/>
+<status status="PASS" start="2026-11-19T02:36:00.468752" elapsed="2.973442"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:22.978535" elapsed="2.020338"/>
+<status status="PASS" start="2026-11-19T02:36:00.468351" elapsed="2.974010"/>
 </kw>
 <kw name="When Pengguna Menekan Tombol Login Dengan Field Input Dikosongkan" owner="token_monitoring_keywords">
 <kw name="UI Validasi Native Klien Tahan Form Input Kosong" owner="TokenMonitoringLibrary">
 <doc>Klik tombol Login saat form kosong.</doc>
-<status status="PASS" start="2026-11-18T18:25:24.999554" elapsed="5.326969"/>
+<status status="PASS" start="2026-11-19T02:36:03.443030" elapsed="2.548727"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:24.999246" elapsed="5.327429"/>
+<status status="PASS" start="2026-11-19T02:36:03.442680" elapsed="2.549250"/>
 </kw>
 <kw name="Then Permintaan Langsung Ke Backend Dengan Payload Kosong Ditolak Kode 400" owner="token_monitoring_keywords">
 <kw name="SEC Verifikasi Permintaan Backend Payload Kosong Ditolak 400" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:31.821400" level="INFO">--- START [BACKEND 400 RESPONSE] | Length=282 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:25:31.821483" level="INFO">{
+<msg time="2026-11-19T02:36:06.332695" level="INFO">--- START [BACKEND 400 RESPONSE] | Length=282 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:36:06.332786" level="INFO">{
   "success": false,
   "error": {
     "code": "INVALID_PAYLOAD",
     "message": "usernameOrEmail dan password wajib diisi."
   },
   "meta": {
-    "x-request-id": "72bacf55339530c5435dca3afe859906",
-    "generatedAt": "2026-11-18T18:25:31+07:00",
+    "x-request-id": "5dba3203143ad8a5c01c4eb0580b981d",
+    "generatedAt": "2026-11-19T02:36:06+07:00",
     "environment": "localhost"
   }
 }</msg>
-<msg time="2026-11-18T18:25:31.821521" level="INFO">--- END [BACKEND 400 RESPONSE] ---</msg>
+<msg time="2026-11-19T02:36:06.332832" level="INFO">--- END [BACKEND 400 RESPONSE] ---</msg>
 <doc>Mengirimkan direct HTTP POST kosong ke /api/v1/auth/login.</doc>
-<status status="PASS" start="2026-11-18T18:25:30.327457" elapsed="1.494163"/>
+<status status="PASS" start="2026-11-19T02:36:05.992679" elapsed="0.340264"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:30.327063" elapsed="1.494669"/>
+<status status="PASS" start="2026-11-19T02:36:05.992272" elapsed="0.340797"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:31.822600" level="INFO">=== [TEARDOWN TEST] TC-007 ===</msg>
-<msg time="2026-11-18T18:25:33.819295" level="INFO">--- START [SUT LOG DELTA: TC-007] | Length=1349 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:25:33.819383" level="INFO">{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:23.454Z","x-request-id":"req-1795001123399"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/healthz","requestType":"health","sourceSystem":"","statusCode":200,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:23.609Z","x-request-id":"cb9851453e293407cee50fcf9d9b8f22"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:25.759Z","x-request-id":"req-1795001125674"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":400,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:31.831Z","x-request-id":"72bacf55339530c5435dca3afe859906"}</msg>
-<msg time="2026-11-18T18:25:33.819428" level="INFO">--- END [SUT LOG DELTA: TC-007] ---</msg>
+<msg time="2026-11-19T02:36:06.334166" level="INFO">=== [TEARDOWN TEST] TC-007 ===</msg>
+<msg time="2026-11-19T02:36:08.965364" level="INFO">--- START [SUT LOG DELTA: TC-007] | Length=1022 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:36:08.965463" level="INFO">{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:03.218Z","x-request-id":"req-1795030563149"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:03.924Z","x-request-id":"req-1795030563872"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":400,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:06.329Z","x-request-id":"5dba3203143ad8a5c01c4eb0580b981d"}</msg>
+<msg time="2026-11-19T02:36:08.965582" level="INFO">--- END [SUT LOG DELTA: TC-007] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:25:31.822497" elapsed="1.998995"/>
+<status status="PASS" start="2026-11-19T02:36:06.333994" elapsed="2.633667"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:31.822143" elapsed="1.999489"/>
+<status status="PASS" start="2026-11-19T02:36:06.333537" elapsed="2.634276"/>
 </kw>
 <tag>auth</tag>
 <tag>client_server</tag>
@@ -496,51 +592,52 @@
 <tag>P1</tag>
 <tag>TC-007</tag>
 <tag>validation</tag>
-<status status="PASS" start="2026-11-18T18:25:21.153511" elapsed="12.668254"/>
+<status status="PASS" start="2026-11-19T02:35:58.261025" elapsed="10.706950"/>
 </test>
 <test id="s1-s1-t8" name="TC-008 Verifikasi URL Dashboard Dan Seluruh Endpoint Monitoring Menolak Akses Tanpa Autentikasi" line="60">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:35.640601" level="INFO">SSH Log baseline offset: 8611385 bytes</msg>
-<msg time="2026-11-18T18:25:35.948545" level="INFO">=== [START TEST SETUP] TC-008 ===</msg>
+<msg time="2026-11-19T02:36:11.933978" level="INFO">SSH Log baseline offset: 9192495 bytes</msg>
+<msg time="2026-11-19T02:36:11.939949" level="INFO">=== [START TEST SETUP] TC-008 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:25:33.830282" elapsed="2.118411"/>
+<status status="PASS" start="2026-11-19T02:36:08.975329" elapsed="2.964757"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:33.829867" elapsed="2.118944"/>
+<status status="PASS" start="2026-11-19T02:36:08.974915" elapsed="2.965309"/>
 </kw>
 <kw name="Given Pengguna Tanpa Sesi Mengakses URL Dashboard Secara Langsung" owner="token_monitoring_keywords">
 <kw name="UI Akses Langsung URL Dashboard Tanpa Sesi Otentikasi" owner="TokenMonitoringLibrary">
 <doc>Buka /dashboard?tab=insight tanpa cookie.</doc>
-<status status="PASS" start="2026-11-18T18:25:35.949503" elapsed="1.226082"/>
+<status status="PASS" start="2026-11-19T02:36:11.940939" elapsed="2.141921"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:35.949142" elapsed="1.226808"/>
+<status status="PASS" start="2026-11-19T02:36:11.940554" elapsed="2.142437"/>
 </kw>
 <kw name="When Komponen ProtectedRoute Mengalihkan Halaman Langsung Ke Form Login" owner="token_monitoring_keywords">
 <kw name="UI Verifikasi Komponen ProtectedRoute Mengalihkan Ke Login" owner="TokenMonitoringLibrary">
 <doc>Memverifikasi redirect ke /login dan tidak ada kebocoran DOM dashboard.</doc>
-<status status="PASS" start="2026-11-18T18:25:37.177698" elapsed="1.056779"/>
+<status status="PASS" start="2026-11-19T02:36:14.083702" elapsed="0.111560"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:37.176790" elapsed="1.057867"/>
+<status status="PASS" start="2026-11-19T02:36:14.083309" elapsed="0.112092"/>
 </kw>
 <kw name="Then Seluruh Endpoint Monitoring Backend Menolak Akses Tanpa Sesi Dengan Kode 401" owner="token_monitoring_keywords">
 <kw name="SEC Verifikasi Seluruh Endpoint Monitoring Backend Ditolak 401" owner="TokenMonitoringLibrary">
 <doc>Mengirimkan direct HTTP GET tanpa cookie ke endpoint monitoring.</doc>
-<status status="PASS" start="2026-11-18T18:25:38.235482" elapsed="0.698028"/>
+<status status="PASS" start="2026-11-19T02:36:14.196308" elapsed="1.191936"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:38.235053" elapsed="0.698626"/>
+<status status="PASS" start="2026-11-19T02:36:14.195762" elapsed="1.192675"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:38.934803" level="INFO">=== [TEARDOWN TEST] TC-008 ===</msg>
-<msg time="2026-11-18T18:25:40.681114" level="INFO">--- START [SUT LOG DELTA: TC-008] | Length=1059 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:25:40.681208" level="INFO">{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:36.415Z","x-request-id":"req-1795001136355"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight","requestType":"insight","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:38.814Z","x-request-id":"a5d3475f0edb9392c492a5c8961b3c6a"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats","requestType":"tokenStats","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:38.944Z","x-request-id":"a4f0891eb83db0dc64638a870b0ac68c"}</msg>
-<msg time="2026-11-18T18:25:40.681294" level="INFO">--- END [SUT LOG DELTA: TC-008] ---</msg>
+<msg time="2026-11-19T02:36:15.389692" level="INFO">=== [TEARDOWN TEST] TC-008 ===</msg>
+<msg time="2026-11-19T02:36:20.333416" level="INFO">--- START [SUT LOG DELTA: TC-008] | Length=1386 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:36:20.333541" level="INFO">{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:12.912Z","x-request-id":"req-1795030572864"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/healthz","requestType":"health","sourceSystem":"","statusCode":200,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:14.485Z","x-request-id":"54462ed9162f01272283a83504f1a929"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight","requestType":"insight","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:14.873Z","x-request-id":"94d13b2e6a34405b5f2d5af0a2984b23"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats","requestType":"tokenStats","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:15.352Z","x-request-id":"2d677dd9c55b56bddf5a7b89e25f32bd"}</msg>
+<msg time="2026-11-19T02:36:20.333612" level="INFO">--- END [SUT LOG DELTA: TC-008] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:25:38.934639" elapsed="1.748754"/>
+<status status="PASS" start="2026-11-19T02:36:15.389463" elapsed="4.946620"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:38.934153" elapsed="1.749384"/>
+<status status="PASS" start="2026-11-19T02:36:15.388939" elapsed="4.947359"/>
 </kw>
 <tag>api_auth</tag>
 <tag>negative</tag>
@@ -548,88 +645,84 @@
 <tag>protected_route</tag>
 <tag>security</tag>
 <tag>TC-008</tag>
-<status status="PASS" start="2026-11-18T18:25:33.829169" elapsed="6.854487"/>
+<status status="PASS" start="2026-11-19T02:36:08.974167" elapsed="11.362295"/>
 </test>
 <test id="s1-s1-t9" name="TC-009 Verifikasi Alur Logout Terminasi Sesi Nyata Dan Penolakan Replay Token Terhadap Replay Attack" line="66">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:42.007686" level="INFO">SSH Log baseline offset: 8612445 bytes</msg>
-<msg time="2026-11-18T18:25:42.313326" level="INFO">=== [START TEST SETUP] TC-009 ===</msg>
+<msg time="2026-11-19T02:36:24.835701" level="INFO">SSH Log baseline offset: 9193882 bytes</msg>
+<msg time="2026-11-19T02:36:24.841579" level="INFO">=== [START TEST SETUP] TC-009 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:25:40.690284" elapsed="1.623201"/>
+<status status="PASS" start="2026-11-19T02:36:20.350099" elapsed="4.491645"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:40.689874" elapsed="1.623731"/>
+<status status="PASS" start="2026-11-19T02:36:20.349387" elapsed="4.492498"/>
 </kw>
 <kw name="Given Pengguna Login Aktif Dan Menangkap Token Akses Sebelum Logout" owner="token_monitoring_keywords">
 <kw name="UI Login Dan Ambil Token Sesi Dengan Protokol Masking" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:44.515515" level="INFO">Initial MongoDB User Snapshot: lastLoginAt=2026-11-18 11:24:16.258000, sessionVersion=33</msg>
-<msg time="2026-11-18T18:25:52.903361" level="INFO">DOM Verification Passed: Dashboard Title, Subtitle, Logout, and Tab Insight active.</msg>
-<msg time="2026-11-18T18:25:53.611597" level="INFO">Captured Token for Replay Test: eyJhbGciOi...*** (Raw token strictly masked)</msg>
+<msg time="2026-11-19T02:36:29.943547" level="INFO">Initial MongoDB User Snapshot: lastLoginAt=2026-11-18 19:34:41.221000, sessionVersion=38</msg>
+<msg time="2026-11-19T02:36:31.720717" level="INFO">DOM Verification Passed: Dashboard Title, Subtitle, Logout, and Tab Insight active.</msg>
+<msg time="2026-11-19T02:36:31.776618" level="INFO">Captured Token for Replay Test: eyJhbGciOi...*** (Raw token strictly masked)</msg>
 <doc>Login dan ambil nilai cookie map_access_token dengan protokol masking.</doc>
-<status status="PASS" start="2026-11-18T18:25:42.314296" elapsed="11.297509"/>
+<status status="PASS" start="2026-11-19T02:36:24.842676" elapsed="6.934080"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:42.313955" elapsed="11.298013"/>
+<status status="PASS" start="2026-11-19T02:36:24.842287" elapsed="6.934598"/>
 </kw>
 <kw name="When Pengguna Mengklik Tombol Logout Pada Header Dashboard" owner="token_monitoring_keywords">
 <kw name="UI Eksekusi Tombol Logout Pada Header Dashboard" owner="TokenMonitoringLibrary">
 <doc>Klik tombol Logout pada header dashboard.</doc>
-<status status="PASS" start="2026-11-18T18:25:53.612740" elapsed="1.298778"/>
+<status status="PASS" start="2026-11-19T02:36:31.777581" elapsed="0.995674"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:53.612327" elapsed="1.299411"/>
+<status status="PASS" start="2026-11-19T02:36:31.777203" elapsed="0.996238"/>
 </kw>
 <kw name="Then Sesi Browser Dibersihkan Dan Tombol Back Peramban Menolak Akses" owner="token_monitoring_keywords">
 <kw name="UI Verifikasi Pembersihan Cookie Dan Proteksi Browser Back" owner="TokenMonitoringLibrary">
 <doc>Memverifikasi cookie dibersihkan dan browser back terproteksi.</doc>
-<status status="PASS" start="2026-11-18T18:25:54.912689" elapsed="3.016372"/>
+<status status="PASS" start="2026-11-19T02:36:32.774529" elapsed="2.768740"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:54.912214" elapsed="3.016985"/>
+<status status="PASS" start="2026-11-19T02:36:32.773916" elapsed="2.769499"/>
 </kw>
 <kw name="And Versi Sesi Pada MongoDB Bertambah Dan Token Lama Ditolak Kode 401 Terhadap Replay Attack" owner="token_monitoring_keywords">
 <kw name="SEC Verifikasi Kenaikan Versi Sesi Dan Replay Attack Ditolak 401" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:58.639559" level="INFO">MongoDB sessionVersion: Initial=33, Post-Logout=34</msg>
-<msg time="2026-11-18T18:25:58.744979" level="INFO">--- START [REPLAY ATTACK REJECTION RESPONSE] | Length=323 chars | Parts=1 ---</msg>
-<msg time="2026-11-18T18:25:58.745086" level="INFO">{
+<msg time="2026-11-19T02:36:38.994891" level="INFO">MongoDB sessionVersion: Initial=38, Post-Logout=39</msg>
+<msg time="2026-11-19T02:36:40.364746" level="INFO">--- START [REPLAY ATTACK REJECTION RESPONSE] | Length=323 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:36:40.364858" level="INFO">{
   "success": false,
   "error": {
     "code": "UNAUTHORIZED_SESSION",
     "message": "Sesi tidak valid atau sudah diakhiri."
   },
   "meta": {
-    "x-request-id": "fc544fb21544ce5d9cfbd700a286144c",
-    "generatedAt": "2026-11-18T18:25:58+07:00",
+    "x-request-id": "258a5ec776731e2a586298c373ba9917",
+    "generatedAt": "2026-11-19T02:36:39+07:00",
     "businessTimezone": "Asia/Jakarta",
     "environment": "localhost"
   }
 }</msg>
-<msg time="2026-11-18T18:25:58.745124" level="INFO">--- END [REPLAY ATTACK REJECTION RESPONSE] ---</msg>
+<msg time="2026-11-19T02:36:40.364962" level="INFO">--- END [REPLAY ATTACK REJECTION RESPONSE] ---</msg>
 <doc>Memverifikasi kenaikan sessionVersion dan penolakan replay token lama.</doc>
-<status status="PASS" start="2026-11-18T18:25:57.929906" elapsed="0.815349"/>
+<status status="PASS" start="2026-11-19T02:36:35.544088" elapsed="4.821030"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:57.929570" elapsed="0.815845"/>
+<status status="PASS" start="2026-11-19T02:36:35.543729" elapsed="4.821564"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:25:58.746315" level="INFO">=== [TEARDOWN TEST] TC-009 ===</msg>
-<msg time="2026-11-18T18:26:00.233000" level="INFO">--- START [SUT LOG DELTA: TC-009] | Length=4148 chars | Parts=2 ---</msg>
-<msg time="2026-11-18T18:26:00.233110" level="INFO">[[SUT LOG DELTA: TC-009] | PART 1/2]
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:44.991Z","x-request-id":"req-1795001144903"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:25:49.572Z","x-request-id":"req-1795001149492"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:25:49.644Z","x-request-id":"req-1795001149563"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:25:49.645Z","x-request-id":"req-1795001149563"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:25:49.645Z","x-request-id":"req-1795001149564"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:25:49.645Z","x-request-id":"req-1795001149564"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:25:49.646Z","x-request-id":"req-1795001149564"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/healthz","requestType":"health","sourceSystem":"","statusCode":200,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:53.688Z","x-request-id":"348987fdbda7fffb6bba2f0cc397bc54"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"POST","path":"/api/v1/auth/logout","requestType":"logout","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:54.722Z","x-request-id":"req-1795001154654"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:55.391Z","x-request-id":"req-1795001155306"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight","requestType":"insight","sourceSystem":"mongodb-auth","statusCode":40</msg>
-<msg time="2026-11-18T18:26:00.233287" level="INFO">[[SUT LOG DELTA: TC-009] | PART 2/2]
-1,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:25:58.753Z","x-request-id":"fc544fb21544ce5d9cfbd700a286144c"}</msg>
-<msg time="2026-11-18T18:26:00.233326" level="INFO">--- END [SUT LOG DELTA: TC-009] ---</msg>
+<msg time="2026-11-19T02:36:40.366478" level="INFO">=== [TEARDOWN TEST] TC-009 ===</msg>
+<msg time="2026-11-19T02:36:46.126351" level="INFO">--- START [SUT LOG DELTA: TC-009] | Length=3821 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:36:46.126524" level="INFO">{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:30.708Z","x-request-id":"req-1795030590641"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":6,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:31.244Z","x-request-id":"req-1795030591193"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:31.452Z","x-request-id":"req-1795030591391"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:31.452Z","x-request-id":"req-1795030591391"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:31.453Z","x-request-id":"req-1795030591392"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:31.454Z","x-request-id":"req-1795030591392"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:31.455Z","x-request-id":"req-1795030591392"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"POST","path":"/api/v1/auth/logout","requestType":"logout","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:31.976Z","x-request-id":"req-1795030591888"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:33.938Z","x-request-id":"req-1795030593866"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight","requestType":"insight","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:39.440Z","x-request-id":"258a5ec776731e2a586298c373ba9917"}</msg>
+<msg time="2026-11-19T02:36:46.126620" level="INFO">--- END [SUT LOG DELTA: TC-009] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:25:58.746170" elapsed="1.488980"/>
+<status status="PASS" start="2026-11-19T02:36:40.366297" elapsed="5.762832"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:25:58.745779" elapsed="1.489546"/>
+<status status="PASS" start="2026-11-19T02:36:40.365773" elapsed="5.763558"/>
 </kw>
 <tag>auth</tag>
 <tag>logout</tag>
@@ -638,98 +731,122 @@
 <tag>security</tag>
 <tag>session_invalidation</tag>
 <tag>TC-009</tag>
-<status status="PASS" start="2026-11-18T18:25:40.689187" elapsed="19.546255"/>
+<status status="PASS" start="2026-11-19T02:36:20.347859" elapsed="25.781642"/>
 </test>
 <test id="s1-s1-t10" name="TC-010 Verifikasi Perpindahan Tab Navigasi Bolak Balik Multi Roundtrip Mempertahankan Integritas Data" line="73">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:26:02.184912" level="INFO">SSH Log baseline offset: 8616594 bytes</msg>
-<msg time="2026-11-18T18:26:02.489983" level="INFO">=== [START TEST SETUP] TC-010 ===</msg>
+<msg time="2026-11-19T02:36:48.327019" level="INFO">SSH Log baseline offset: 9198031 bytes</msg>
+<msg time="2026-11-19T02:36:48.332928" level="INFO">=== [START TEST SETUP] TC-010 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:26:00.242045" elapsed="2.248144"/>
+<status status="PASS" start="2026-11-19T02:36:46.138338" elapsed="2.194737"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:00.241727" elapsed="2.248632"/>
+<status status="PASS" start="2026-11-19T02:36:46.137922" elapsed="2.195285"/>
 </kw>
 <kw name="Given Catat Baseline Koneksi Database Aktif" owner="token_monitoring_keywords">
 <kw name="DB Catat Baseline Koneksi Database Threads Connected" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:26:06.594474" level="INFO">MySQL Baseline Threads_connected: 593</msg>
-<doc>Merekam jumlah Threads_connected sebelum uji navigasi.</doc>
-<status status="PASS" start="2026-11-18T18:26:02.491172" elapsed="4.103458"/>
+<msg time="2026-11-19T02:36:57.597604" level="INFO">Baseline MySQL Threads_connected: 591, SUT DB Conns: 5, SUT Process Threads: 10</msg>
+<doc>Merekam jumlah Threads_connected, process threads SUT, dan me-reset penghitung request.</doc>
+<status status="PASS" start="2026-11-19T02:36:48.333954" elapsed="9.263827"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:02.490752" elapsed="4.103997"/>
+<status status="PASS" start="2026-11-19T02:36:48.333569" elapsed="9.264385"/>
 </kw>
 <kw name="When Pengguna Melakukan Navigasi Bolak Balik Antar Tab Sebanyak Tiga Putaran Penuh" owner="token_monitoring_keywords">
 <kw name="UI Eksekusi Navigasi Bolak Balik Tiga Putaran Penuh" owner="TokenMonitoringLibrary">
 <doc>Melakukan perpindahan tab Insight &lt;-&gt; Token Stats sebanyak 3 kali.</doc>
-<status status="PASS" start="2026-11-18T18:26:06.595410" elapsed="15.385253"/>
+<status status="PASS" start="2026-11-19T02:36:57.598925" elapsed="6.461601"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:06.595043" elapsed="15.385771"/>
+<status status="PASS" start="2026-11-19T02:36:57.598435" elapsed="6.462423"/>
 </kw>
 <kw name="Then Integritas Tampilan Grafik Tetap Utuh Dan Bebas Dari Kebocoran Pool Koneksi" owner="token_monitoring_keywords">
 <kw name="DB Verifikasi Integritas Tampilan Dan Ketiadaan Kebocoran Koneksi" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:26:23.030480" level="INFO">MySQL Threads_connected: Baseline=593, Post-Roundtrip=593</msg>
-<doc>Memverifikasi grafik tetap 12 batang dan koneksi database kembali ke baseline.</doc>
-<status status="PASS" start="2026-11-18T18:26:21.981535" elapsed="1.049140"/>
+<msg time="2026-11-19T02:37:11.927662" level="INFO">MySQL SUT Pool Conns: Baseline=5, Post=5, Delta=0 (Max pool=5)</msg>
+<msg time="2026-11-19T02:37:11.927781" level="INFO">MySQL Global Threads_connected: Baseline=591, Post=591, Delta=0</msg>
+<msg time="2026-11-19T02:37:15.334990" level="INFO">SUT Process Threads: Baseline=10, Post=10, Delta=0</msg>
+<msg time="2026-11-19T02:37:15.337453" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:37:15.337546" level="INFO"> TRANSPARENT PAYLOAD AUDIT: TC-010 Roundtrip Stability &amp; Connection Leak Audit</msg>
+<msg time="2026-11-19T02:37:15.337591" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:37:15.337663" level="INFO">--- START [EXPECTED PAYLOAD] TC-010 Roundtrip Stability &amp; Connection Leak Audit | Length=228 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:37:15.337734" level="INFO">{
+  "roundtrips_executed": 3,
+  "max_allowed_sut_db_delta": 1,
+  "max_sut_db_pool_limit": 5,
+  "max_allowed_threads_delta": 5,
+  "expected_charts": [
+    "Token Usage (Last 12 Months)",
+    "Token Balance (Last 12 Months)"
+  ]
+}</msg>
+<msg time="2026-11-19T02:37:15.337773" level="INFO">--- END [EXPECTED PAYLOAD] TC-010 Roundtrip Stability &amp; Connection Leak Audit ---</msg>
+<msg time="2026-11-19T02:37:15.337830" level="INFO">--- START [ACTUAL PAYLOAD] TC-010 Roundtrip Stability &amp; Connection Leak Audit | Length=298 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:37:15.337868" level="INFO">{
+  "actual_sut_db_delta": 0,
+  "baseline_sut_db_conns": 5,
+  "post_sut_db_conns": 5,
+  "actual_mysql_delta": 0,
+  "baseline_mysql_threads": 591,
+  "post_mysql_threads": 591,
+  "actual_threads_delta": 0,
+  "baseline_sut_threads": 10,
+  "post_sut_threads": 10,
+  "monitoring_requests_detected": 36
+}</msg>
+<msg time="2026-11-19T02:37:15.337902" level="INFO">--- END [ACTUAL PAYLOAD] TC-010 Roundtrip Stability &amp; Connection Leak Audit ---</msg>
+<msg time="2026-11-19T02:37:15.337933" level="INFO">--- [COMPARISON RESULT: TC-010 Roundtrip Stability &amp; Connection Leak Audit] PASS - 100% MATCH (All fields identical) ---</msg>
+<msg time="2026-11-19T02:37:15.337963" level="INFO">================================================================================</msg>
+<doc>Memverifikasi grafik tetap 12 batang, koneksi database stabil (delta &lt;= 1), dan thread backend stabil (delta &lt;= 5).</doc>
+<status status="PASS" start="2026-11-19T02:37:04.062308" elapsed="11.275735"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:21.981150" elapsed="1.049717"/>
+<status status="PASS" start="2026-11-19T02:37:04.061600" elapsed="11.276573"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:26:23.032267" level="INFO">=== [TEARDOWN TEST] TC-010 ===</msg>
-<msg time="2026-11-18T18:26:24.677803" level="INFO">--- START [SUT LOG DELTA: TC-010] | Length=16080 chars | Parts=5 ---</msg>
-<msg time="2026-11-18T18:26:24.677941" level="INFO">[[SUT LOG DELTA: TC-010] | PART 1/5]
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T11:26:07.407Z","x-request-id":"req-1795001167333"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:12.227Z","x-request-id":"req-1795001172144"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:12.323Z","x-request-id":"req-1795001172245"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:12.323Z","x-request-id":"req-1795001172244"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:12.324Z","x-request-id":"req-1795001172245"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:12.324Z","x-request-id":"req-1795001172246"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:12.325Z","x-request-id":"req-1795001172246"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/months","requestType":"tokenStatsMonths","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:14.225Z","x-request-id":"req-1795001174155"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:14.290Z","x-request-id":"req-1795001174215"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:2</msg>
-<msg time="2026-11-18T18:26:24.678023" level="INFO">[[SUT LOG DELTA: TC-010] | PART 2/5]
-6:14.291Z","x-request-id":"req-1795001174215"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:14.290Z","x-request-id":"req-1795001174214"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:14.299Z","x-request-id":"req-1795001174215"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:14.299Z","x-request-id":"req-1795001174215"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:15.554Z","x-request-id":"req-1795001175487"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:15.554Z","x-request-id":"req-1795001175487"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:15.561Z","x-request-id":"req-1795001175487"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:15.570Z","x-request-id":"req-1795001175488"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:15.571Z","x-request-id":"req-1795001175488"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:16.883Z","x-request-id":"req-1795001176801"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","reque</msg>
-<msg time="2026-11-18T18:26:24.678110" level="INFO">[[SUT LOG DELTA: TC-010] | PART 3/5]
-stType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:16.883Z","x-request-id":"req-1795001176801"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:16.884Z","x-request-id":"req-1795001176801"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:17.206Z","x-request-id":"req-1795001176802"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:17.218Z","x-request-id":"req-1795001176801"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:18.194Z","x-request-id":"req-1795001178123"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:18.194Z","x-request-id":"req-1795001178124"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:18.195Z","x-request-id":"req-1795001178124"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:18.196Z","x-request-id":"req-1795001178124"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:18.196Z","x-request-id":"req-1795001178124"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:19.507Z","x-request-id":"req-1795001179428"}
-{"level":</msg>
-<msg time="2026-11-18T18:26:24.678170" level="INFO">[[SUT LOG DELTA: TC-010] | PART 4/5]
-"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:19.507Z","x-request-id":"req-1795001179429"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:19.508Z","x-request-id":"req-1795001179428"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:19.508Z","x-request-id":"req-1795001179428"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:19.509Z","x-request-id":"req-1795001179427"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:20.818Z","x-request-id":"req-1795001180732"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:20.818Z","x-request-id":"req-1795001180733"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:20.819Z","x-request-id":"req-1795001180733"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:20.834Z","x-request-id":"req-1795001180733"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:20.834Z","x-request-id":"req-1795001180733"}
-{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/healthz","requestType":"health","sourceSystem":"","statusCode":200,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestam</msg>
-<msg time="2026-11-18T18:26:24.678260" level="INFO">[[SUT LOG DELTA: TC-010] | PART 5/5]
-p":"2026-11-18T11:26:23.769Z","x-request-id":"9e007d7acb4c880a2bcd502cc9a1c488"}</msg>
-<msg time="2026-11-18T18:26:24.678291" level="INFO">--- END [SUT LOG DELTA: TC-010] ---</msg>
+<msg time="2026-11-19T02:37:15.339258" level="INFO">=== [TEARDOWN TEST] TC-010 ===</msg>
+<msg time="2026-11-19T02:37:19.130303" level="INFO">--- START [SUT LOG DELTA: TC-010] | Length=13086 chars | Parts=4 ---</msg>
+<msg time="2026-11-19T02:37:19.130438" level="INFO">[[SUT LOG DELTA: TC-010] | PART 1/4]
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":401,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:36:48.752Z","x-request-id":"req-1795030608690"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"POST","path":"/api/v1/auth/login","requestType":"login","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:49.883Z","x-request-id":"req-1795030609820"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:50.131Z","x-request-id":"req-1795030610076"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:50.132Z","x-request-id":"req-1795030610076"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:50.132Z","x-request-id":"req-1795030610076"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:50.132Z","x-request-id":"req-1795030610077"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:50.141Z","x-request-id":"req-1795030610077"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:58.299Z","x-request-id":"req-1795030618235"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:58.431Z","x-request-id":"req-1795030618373"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:58.431Z","x-request-id":"req-1795030618374</msg>
+<msg time="2026-11-19T02:37:19.130545" level="INFO">[[SUT LOG DELTA: TC-010] | PART 2/4]
+"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:58.431Z","x-request-id":"req-1795030618375"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:58.431Z","x-request-id":"req-1795030618376"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:58.437Z","x-request-id":"req-1795030618377"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/months","requestType":"tokenStatsMonths","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:59.304Z","x-request-id":"req-1795030619230"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:59.657Z","x-request-id":"req-1795030619541"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:59.659Z","x-request-id":"req-1795030619542"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:59.660Z","x-request-id":"req-1795030619542"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:59.660Z","x-request-id":"req-1795030619542"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:59.661Z","x-request-id":"req-1795030619542"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem"</msg>
+<msg time="2026-11-19T02:37:19.130661" level="INFO">[[SUT LOG DELTA: TC-010] | PART 3/4]
+:"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:36:59.732Z","x-request-id":"req-1795030619651"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:00.122Z","x-request-id":"req-1795030619651"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:00.137Z","x-request-id":"req-1795030619651"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:00.146Z","x-request-id":"req-1795030619652"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:00.146Z","x-request-id":"req-1795030619652"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:00.195Z","x-request-id":"req-1795030620100"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:01.314Z","x-request-id":"req-1795030620983"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:02.406Z","x-request-id":"req-1795030621430"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:02.570Z","x-request-id":"req-1795030621431"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:03.254Z","x-request-id":"req-1795030621431"}
+{"level":"INFO","message":{"accountNumber":"************6462","cli</msg>
+<msg time="2026-11-19T02:37:19.130754" level="INFO">[[SUT LOG DELTA: TC-010] | PART 4/4]
+entKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:03.276Z","x-request-id":"req-1795030621432"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:03.276Z","x-request-id":"req-1795030621432"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/healthz","requestType":"health","sourceSystem":"","statusCode":200,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:37:14.653Z","x-request-id":"d280e45c1dd393cb6c6b0c80f0b68faa"}</msg>
+<msg time="2026-11-19T02:37:19.130807" level="INFO">--- END [SUT LOG DELTA: TC-010] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:26:23.032080" elapsed="1.648192"/>
+<status status="PASS" start="2026-11-19T02:37:15.339063" elapsed="3.794420"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:23.031472" elapsed="1.648932"/>
+<status status="PASS" start="2026-11-19T02:37:15.338622" elapsed="3.795057"/>
 </kw>
 <tag>connection_leak</tag>
 <tag>dashboard</tag>
@@ -738,65 +855,104 @@ p":"2026-11-18T11:26:23.769Z","x-request-id":"9e007d7acb4c880a2bcd502cc9a1c488"}
 <tag>roundtrip</tag>
 <tag>stability</tag>
 <tag>TC-010</tag>
-<status status="PASS" start="2026-11-18T18:26:00.241074" elapsed="24.439450"/>
+<status status="PASS" start="2026-11-19T02:36:46.137133" elapsed="32.996709"/>
 </test>
 <test id="s1-s1-t11" name="TC-011 Verifikasi Interaksi Hover Pada Elemen Batang Grafik Menampilkan Rincian Bulan Dan Nilai Token" line="79">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:26:26.440603" level="INFO">SSH Log baseline offset: 8632675 bytes</msg>
-<msg time="2026-11-18T18:26:26.745657" level="INFO">=== [START TEST SETUP] TC-011 ===</msg>
+<msg time="2026-11-19T02:37:21.735400" level="INFO">SSH Log baseline offset: 9211118 bytes</msg>
+<msg time="2026-11-19T02:37:21.741866" level="INFO">=== [START TEST SETUP] TC-011 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:26:24.687367" elapsed="2.058437"/>
+<status status="PASS" start="2026-11-19T02:37:19.145281" elapsed="2.596750"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:24.686969" elapsed="2.058953"/>
+<status status="PASS" start="2026-11-19T02:37:19.143246" elapsed="2.598951"/>
 </kw>
 <kw name="Given Pengguna Berada Di Tab Insight Pada Halaman Dashboard" owner="token_monitoring_keywords">
 <kw name="UI Pastikan Berada Pada Tab Insight Dashboard" owner="TokenMonitoringLibrary">
 <doc>Memastikan berada di tab Insight.</doc>
-<status status="PASS" start="2026-11-18T18:26:26.746650" elapsed="2.093808"/>
+<status status="PASS" start="2026-11-19T02:37:21.743240" elapsed="2.347791"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:26.746331" elapsed="2.094268"/>
+<status status="PASS" start="2026-11-19T02:37:21.742604" elapsed="2.348575"/>
 </kw>
 <kw name="When Pengguna Berada Di Tab Token Stats Bulan November Dan Menyorot Batang Tanggal 18" owner="token_monitoring_keywords">
 <kw name="UI Arahkan Kursor Mouse Ke Batang Grafik Tanggal 18" owner="TokenMonitoringLibrary">
+<msg time="2026-11-19T02:37:26.436617" level="INFO">Presisi hover tanggal 18 ditemukan pada offset 534px (x=622): Nov 18, 2026Total token: 60</msg>
 <doc>Membuka tab Token Stats bulan November dan melakukan hover pada chart.</doc>
-<status status="PASS" start="2026-11-18T18:26:28.841442" elapsed="3.601817"/>
+<status status="PASS" start="2026-11-19T02:37:24.091823" elapsed="2.344935"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:28.840971" elapsed="3.602434"/>
+<status status="PASS" start="2026-11-19T02:37:24.091495" elapsed="2.345392"/>
 </kw>
 <kw name="Then Tooltip Menampilkan Nilai Yang Terbukti Cocok Dengan SQL Harian Dan Log SUT Bebas Peringatan" owner="token_monitoring_keywords">
 <kw name="DB Verifikasi Nilai Tooltip Cocok Dengan SQL Harian Dan Log Bersih" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:26:33.099513" level="INFO">Daily 2026-11-18 SQL raw=32700.0, tokens=60.56</msg>
-<msg time="2026-11-18T18:26:34.110745" level="INFO">Rendered Tooltip Text: Nov 11, 2026Total token: 39</msg>
+<msg time="2026-11-19T02:37:28.264715" level="INFO">Daily 2026-11-18 SQL raw=32700.0, tokens=60.56, floored=60</msg>
+<msg time="2026-11-19T02:37:28.340569" level="INFO">Rendered Tooltip Text Terverifikasi: 'Nov 18, 2026Total token: 60'</msg>
+<msg time="2026-11-19T02:37:30.953926" level="INFO">--- START [SUT LOG DELTA: TC-011] | Length=4974 chars | Parts=2 ---</msg>
+<msg time="2026-11-19T02:37:30.954070" level="INFO">[[SUT LOG DELTA: TC-011] | PART 1/2]
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:22.601Z","x-request-id":"req-1795030642509"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:23.156Z","x-request-id":"req-1795030642983"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:23.157Z","x-request-id":"req-1795030642985"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:23.158Z","x-request-id":"req-1795030642986"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:23.171Z","x-request-id":"req-1795030642987"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:23.172Z","x-request-id":"req-1795030642988"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/months","requestType":"tokenStatsMonths","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.281Z","x-request-id":"req-1795030644212"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.623Z","x-request-id":"req-1795030644477"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.623Z","x-request-id":"req-1795030644476"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs</msg>
+<msg time="2026-11-19T02:37:30.954170" level="INFO">[[SUT LOG DELTA: TC-011] | PART 2/2]
+":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.623Z","x-request-id":"req-1795030644476"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.624Z","x-request-id":"req-1795030644476"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.624Z","x-request-id":"req-1795030644476"}</msg>
+<msg time="2026-11-19T02:37:30.954256" level="INFO">--- END [SUT LOG DELTA: TC-011] ---</msg>
+<msg time="2026-11-19T02:37:30.954351" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:37:30.954396" level="INFO"> TRANSPARENT PAYLOAD AUDIT: TC-011 Daily Tooltip vs SQL</msg>
+<msg time="2026-11-19T02:37:30.954434" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:37:30.954513" level="INFO">--- START [EXPECTED PAYLOAD] TC-011 Daily Tooltip vs SQL | Length=150 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:37:30.954557" level="INFO">{
+  "date": "2026-11-18",
+  "tooltip_label": "Nov 18, 2026",
+  "tooltip_value": "Total token: 60",
+  "sql_raw_usage": 32700.0,
+  "sql_tokens": 60.56
+}</msg>
+<msg time="2026-11-19T02:37:30.954595" level="INFO">--- END [EXPECTED PAYLOAD] TC-011 Daily Tooltip vs SQL ---</msg>
+<msg time="2026-11-19T02:37:30.954653" level="INFO">--- START [ACTUAL PAYLOAD] TC-011 Daily Tooltip vs SQL | Length=108 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:37:30.954695" level="INFO">{
+  "date": "2026-11-18",
+  "tooltip_rendered": "Nov 18, 2026Total token: 60",
+  "sut_log_status": "CLEAN"
+}</msg>
+<msg time="2026-11-19T02:37:30.954730" level="INFO">--- END [ACTUAL PAYLOAD] TC-011 Daily Tooltip vs SQL ---</msg>
+<msg time="2026-11-19T02:37:30.954765" level="INFO">--- [COMPARISON RESULT: TC-011 Daily Tooltip vs SQL] PASS - 100% MATCH (All fields identical) ---</msg>
+<msg time="2026-11-19T02:37:30.954799" level="INFO">================================================================================</msg>
 <doc>Memverifikasi data harian tanggal 18 Nov dari database dan ketiadaan error log.</doc>
-<status status="PASS" start="2026-11-18T18:26:32.444070" elapsed="1.668613"/>
+<status status="PASS" start="2026-11-19T02:37:26.437579" elapsed="4.517318"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:32.443752" elapsed="1.669066"/>
+<status status="PASS" start="2026-11-19T02:37:26.437210" elapsed="4.517838"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:26:34.113706" level="INFO">=== [TEARDOWN TEST] TC-011 ===</msg>
-<msg time="2026-11-18T18:26:36.300489" level="INFO">--- START [SUT LOG DELTA: TC-011] | Length=4974 chars | Parts=2 ---</msg>
-<msg time="2026-11-18T18:26:36.300633" level="INFO">[[SUT LOG DELTA: TC-011] | PART 1/2]
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:27.216Z","x-request-id":"req-1795001187162"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:27.284Z","x-request-id":"req-1795001187210"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:27.298Z","x-request-id":"req-1795001187210"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:27.298Z","x-request-id":"req-1795001187211"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:27.299Z","x-request-id":"req-1795001187211"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:27.299Z","x-request-id":"req-1795001187211"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/months","requestType":"tokenStatsMonths","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:30.001Z","x-request-id":"req-1795001189914"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:30.051Z","x-request-id":"req-1795001189990"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:30.066Z","x-request-id":"req-1795001189990"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs</msg>
-<msg time="2026-11-18T18:26:36.300879" level="INFO">[[SUT LOG DELTA: TC-011] | PART 2/2]
-":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:30.067Z","x-request-id":"req-1795001189991"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:30.067Z","x-request-id":"req-1795001189991"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:30.068Z","x-request-id":"req-1795001189990"}</msg>
-<msg time="2026-11-18T18:26:36.301000" level="INFO">--- END [SUT LOG DELTA: TC-011] ---</msg>
+<msg time="2026-11-19T02:37:30.956200" level="INFO">=== [TEARDOWN TEST] TC-011 ===</msg>
+<msg time="2026-11-19T02:37:34.289699" level="INFO">--- START [SUT LOG DELTA: TC-011] | Length=4974 chars | Parts=2 ---</msg>
+<msg time="2026-11-19T02:37:34.289834" level="INFO">[[SUT LOG DELTA: TC-011] | PART 1/2]
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:22.601Z","x-request-id":"req-1795030642509"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:23.156Z","x-request-id":"req-1795030642983"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:23.157Z","x-request-id":"req-1795030642985"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:23.158Z","x-request-id":"req-1795030642986"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:23.171Z","x-request-id":"req-1795030642987"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:23.172Z","x-request-id":"req-1795030642988"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/months","requestType":"tokenStatsMonths","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.281Z","x-request-id":"req-1795030644212"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.623Z","x-request-id":"req-1795030644477"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.623Z","x-request-id":"req-1795030644476"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs</msg>
+<msg time="2026-11-19T02:37:34.289947" level="INFO">[[SUT LOG DELTA: TC-011] | PART 2/2]
+":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.623Z","x-request-id":"req-1795030644476"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.624Z","x-request-id":"req-1795030644476"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:24.624Z","x-request-id":"req-1795030644476"}</msg>
+<msg time="2026-11-19T02:37:34.290002" level="INFO">--- END [SUT LOG DELTA: TC-011] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:26:34.113595" elapsed="2.189795"/>
+<status status="PASS" start="2026-11-19T02:37:30.956044" elapsed="3.336572"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:34.113242" elapsed="2.190302"/>
+<status status="PASS" start="2026-11-19T02:37:30.955553" elapsed="3.337299"/>
 </kw>
 <tag>chart</tag>
 <tag>dashboard</tag>
@@ -805,76 +961,103 @@ p":"2026-11-18T11:26:23.769Z","x-request-id":"9e007d7acb4c880a2bcd502cc9a1c488"}
 <tag>TC-011</tag>
 <tag>tooltip</tag>
 <tag>ux</tag>
-<status status="PASS" start="2026-11-18T18:26:24.686319" elapsed="11.617395"/>
+<status status="PASS" start="2026-11-19T02:37:19.142328" elapsed="15.150693"/>
 </test>
 <test id="s1-s1-t12" name="TC-012 Verifikasi Pemilihan Bulan Dengan Aktivitas Nol Menampilkan Metrik Nol Tanpa Merusak Antarmuka" line="85">
 <kw name="Persiapkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="SETUP">
 <kw name="SSH Persiapkan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:26:37.699193" level="INFO">SSH Log baseline offset: 8637650 bytes</msg>
-<msg time="2026-11-18T18:26:38.004632" level="INFO">=== [START TEST SETUP] TC-012 ===</msg>
+<msg time="2026-11-19T02:37:38.625437" level="INFO">SSH Log baseline offset: 9216093 bytes</msg>
+<msg time="2026-11-19T02:37:38.631750" level="INFO">=== [START TEST SETUP] TC-012 ===</msg>
 <doc>Setup awal setiap testcase: rekam offset log SSH dan buka sesi browser.</doc>
-<status status="PASS" start="2026-11-18T18:26:36.316728" elapsed="1.688052"/>
+<status status="PASS" start="2026-11-19T02:37:34.306319" elapsed="4.325601"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:36.314906" elapsed="1.689997"/>
+<status status="PASS" start="2026-11-19T02:37:34.305842" elapsed="4.326245"/>
 </kw>
 <kw name="Given Pengguna Berada Di Tab Insight Pada Halaman Dashboard" owner="token_monitoring_keywords">
 <kw name="UI Pastikan Berada Pada Tab Insight Dashboard" owner="TokenMonitoringLibrary">
 <doc>Memastikan berada di tab Insight.</doc>
-<status status="PASS" start="2026-11-18T18:26:38.005701" elapsed="1.315240"/>
+<status status="PASS" start="2026-11-19T02:37:38.633285" elapsed="0.173295"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:38.005274" elapsed="1.315811"/>
+<status status="PASS" start="2026-11-19T02:37:38.632622" elapsed="0.174089"/>
 </kw>
 <kw name="When Pengguna Memilih Bulan Tertua Desember 2025 Pada Dropdown Toolbar" owner="token_monitoring_keywords">
 <kw name="UI Pilih Opsi Bulan Tertua Desember 2025 Pada Dropdown" owner="TokenMonitoringLibrary">
 <doc>Memilih opsi 2025-12 pada dropdown.</doc>
-<status status="PASS" start="2026-11-18T18:26:39.321792" elapsed="5.635198"/>
+<status status="PASS" start="2026-11-19T02:37:38.807323" elapsed="3.383392"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:39.321422" elapsed="5.635722"/>
+<status status="PASS" start="2026-11-19T02:37:38.806996" elapsed="3.383856"/>
 </kw>
 <kw name="Then Metrik Penggunaan Dan Top Up Bernilai Nol Sementara Saldo Snapshot Dipertahankan" owner="token_monitoring_keywords">
 <kw name="DB Verifikasi Kondisi Nol Desember Dan Retensi Saldo Snapshot" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:26:48.752924" level="INFO">December 2025 UI Metrics: {'Usage': '0', 'Top-Up': '0', 'Token Balance': '18.138'}</msg>
+<msg time="2026-11-19T02:37:43.430177" level="INFO">December 2025 UI Metrics: {'Usage': '0', 'Top-Up': '0', 'Token Balance': '18.138'}</msg>
+<msg time="2026-11-19T02:37:43.432513" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:37:43.432593" level="INFO"> TRANSPARENT PAYLOAD AUDIT: TC-012 Empty Month vs SQL Carry-Forward</msg>
+<msg time="2026-11-19T02:37:43.432630" level="INFO">================================================================================</msg>
+<msg time="2026-11-19T02:37:43.432692" level="INFO">--- START [EXPECTED PAYLOAD] TC-012 Empty Month vs SQL Carry-Forward | Length=172 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:37:43.432724" level="INFO">{
+  "month": "2025-12",
+  "usage": 0,
+  "topup": 0,
+  "balance_carry_forward_from": "2024-06-01",
+  "expected_balance_tokens": 18138.91,
+  "expected_ui_balance": "18.138"
+}</msg>
+<msg time="2026-11-19T02:37:43.432752" level="INFO">--- END [EXPECTED PAYLOAD] TC-012 Empty Month vs SQL Carry-Forward ---</msg>
+<msg time="2026-11-19T02:37:43.432802" level="INFO">--- START [ACTUAL PAYLOAD] TC-012 Empty Month vs SQL Carry-Forward | Length=152 chars | Parts=1 ---</msg>
+<msg time="2026-11-19T02:37:43.432831" level="INFO">{
+  "month": "2025-12",
+  "api_usage": 0.0,
+  "api_topup": null,
+  "api_balance": null,
+  "ui_usage": "0",
+  "ui_topup": "0",
+  "ui_balance": "18.138"
+}</msg>
+<msg time="2026-11-19T02:37:43.432857" level="INFO">--- END [ACTUAL PAYLOAD] TC-012 Empty Month vs SQL Carry-Forward ---</msg>
+<msg time="2026-11-19T02:37:43.432884" level="INFO">--- [COMPARISON RESULT: TC-012 Empty Month vs SQL Carry-Forward] PASS - 100% MATCH (All fields identical) ---</msg>
+<msg time="2026-11-19T02:37:43.432908" level="INFO">================================================================================</msg>
 <doc>Memverifikasi Usage=0, TopUp=0, dan Saldo snapshot tersimpan 18.138.</doc>
-<status status="PASS" start="2026-11-18T18:26:44.957852" elapsed="3.797682"/>
+<status status="PASS" start="2026-11-19T02:37:42.191534" elapsed="1.241441"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:44.957496" elapsed="3.798189"/>
+<status status="PASS" start="2026-11-19T02:37:42.191150" elapsed="1.241932"/>
 </kw>
 <kw name="Pulihkan Lingkungan Pengujian Web UI" owner="token_monitoring_keywords" type="TEARDOWN">
 <kw name="SSH Selesaikan Skenario Uji SUT Log" owner="TokenMonitoringLibrary">
-<msg time="2026-11-18T18:26:48.756645" level="INFO">=== [TEARDOWN TEST] TC-012 ===</msg>
-<msg time="2026-11-18T18:26:50.217147" level="INFO">--- START [SUT LOG DELTA: TC-012] | Length=9159 chars | Parts=3 ---</msg>
-<msg time="2026-11-18T18:26:50.217267" level="INFO">[[SUT LOG DELTA: TC-012] | PART 1/3]
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:38.474Z","x-request-id":"req-1795001198376"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:38.474Z","x-request-id":"req-1795001198376"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:38.476Z","x-request-id":"req-1795001198377"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:38.476Z","x-request-id":"req-1795001198377"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:38.476Z","x-request-id":"req-1795001198377"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:40.241Z","x-request-id":"req-1795001200160"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:40.306Z","x-request-id":"req-1795001200237"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:40.313Z","x-request-id":"req-1795001200239"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:40.313Z","x-request-id":"req-1795001200240"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurat</msg>
-<msg time="2026-11-18T18:26:50.217342" level="INFO">[[SUT LOG DELTA: TC-012] | PART 2/3]
-ionMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:40.313Z","x-request-id":"req-1795001200238"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:40.314Z","x-request-id":"req-1795001200238"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/months","requestType":"tokenStatsMonths","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:42.993Z","x-request-id":"req-1795001202909"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:43.043Z","x-request-id":"req-1795001202981"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:43.060Z","x-request-id":"req-1795001202981"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:43.061Z","x-request-id":"req-1795001202983"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:43.061Z","x-request-id":"req-1795001202982"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:43.062Z","x-request-id":"req-1795001202982"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:44.276Z","x-request-id":"req-1795001204193"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:44.276Z","x-request-id":"req-1795001204194"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"re</msg>
-<msg time="2026-11-18T18:26:50.217419" level="INFO">[[SUT LOG DELTA: TC-012] | PART 3/3]
-quest_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:44.277Z","x-request-id":"req-1795001204193"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:44.277Z","x-request-id":"req-1795001204194"}
-{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T11:26:44.277Z","x-request-id":"req-1795001204192"}</msg>
-<msg time="2026-11-18T18:26:50.217456" level="INFO">--- END [SUT LOG DELTA: TC-012] ---</msg>
+<msg time="2026-11-19T02:37:43.434088" level="INFO">=== [TEARDOWN TEST] TC-012 ===</msg>
+<msg time="2026-11-19T02:37:46.753594" level="INFO">--- START [SUT LOG DELTA: TC-012] | Length=9486 chars | Parts=3 ---</msg>
+<msg time="2026-11-19T02:37:46.753689" level="INFO">[[SUT LOG DELTA: TC-012] | PART 1/3]
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:38.780Z","x-request-id":"req-1795030658722"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:38.780Z","x-request-id":"req-1795030658724"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:38.781Z","x-request-id":"req-1795030658723"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:38.782Z","x-request-id":"req-1795030658724"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":5,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:38.782Z","x-request-id":"req-1795030658723"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/auth/session","requestType":"session","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:39.161Z","x-request-id":"req-1795030659109"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-chart","requestType":"insightBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:39.232Z","x-request-id":"req-1795030659172"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-summary","requestType":"insightUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:39.233Z","x-request-id":"req-1795030659170"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/topup-summary","requestType":"insightTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:39.233Z","x-request-id":"req-1795030659171"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/usage-chart","requestType":"insightUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurat</msg>
+<msg time="2026-11-19T02:37:46.753777" level="INFO">[[SUT LOG DELTA: TC-012] | PART 2/3]
+ionMs":2,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:39.233Z","x-request-id":"req-1795030659172"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/insight/balance-summary","requestType":"insightBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":6,"upstreamDurationMs":3,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:39.235Z","x-request-id":"req-1795030659171"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/months","requestType":"tokenStatsMonths","sourceSystem":"mongodb-auth","statusCode":200,"totalDurationMs":2,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:40.112Z","x-request-id":"req-1795030659995"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:40.631Z","x-request-id":"req-1795030660467"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:40.632Z","x-request-id":"req-1795030660467"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:40.632Z","x-request-id":"req-1795030660468"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:40.632Z","x-request-id":"req-1795030660466"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:40.641Z","x-request-id":"req-1795030660468"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-summary","requestType":"tokenStatsUsageSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:41.037Z","x-request-id":"req-1795030660904"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-summary","requestType":"tokenStatsTopUpSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":0,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:41.738Z","x-request-id":"req-1795030660906"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"reques</msg>
+<msg time="2026-11-19T02:37:46.753842" level="INFO">[[SUT LOG DELTA: TC-012] | PART 3/3]
+t_completed","method":"GET","path":"/api/v1/monitoring/token-stats/usage-chart","requestType":"tokenStatsUsageChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":3,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:41.747Z","x-request-id":"req-1795030660906"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-summary","requestType":"tokenStatsBalanceSummary","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:41.748Z","x-request-id":"req-1795030660906"}
+{"level":"INFO","message":{"accountNumber":"************6462","clientKey":"mahkamah-agung","event":"request_completed","method":"GET","path":"/api/v1/monitoring/token-stats/balance-chart","requestType":"tokenStatsBalanceChart","sourceSystem":"summary-mysql","statusCode":200,"totalDurationMs":4,"upstreamDurationMs":1,"userKey":"user-ma-stg-001"},"timestamp":"2026-11-18T19:37:41.748Z","x-request-id":"req-1795030660907"}
+{"level":"INFO","message":{"accountNumber":"","clientKey":"","event":"request_completed","method":"GET","path":"/healthz","requestType":"health","sourceSystem":"","statusCode":200,"totalDurationMs":0,"upstreamDurationMs":0,"userKey":""},"timestamp":"2026-11-18T19:37:44.726Z","x-request-id":"cc9da237eff237ed3b8f2edcab3d3a0f"}</msg>
+<msg time="2026-11-19T02:37:46.753882" level="INFO">--- END [SUT LOG DELTA: TC-012] ---</msg>
 <doc>Teardown setiap testcase: ambil log delta SSH dan simpan evidence.</doc>
-<status status="PASS" start="2026-11-18T18:26:48.756520" elapsed="1.462948"/>
+<status status="PASS" start="2026-11-19T02:37:43.433921" elapsed="3.322763"/>
 </kw>
-<status status="PASS" start="2026-11-18T18:26:48.756112" elapsed="1.463495"/>
+<status status="PASS" start="2026-11-19T02:37:43.433503" elapsed="3.323324"/>
 </kw>
 <tag>dashboard</tag>
 <tag>edge_case</tag>
@@ -883,18 +1066,18 @@ quest_completed","method":"GET","path":"/api/v1/monitoring/token-stats/topup-sum
 <tag>retention</tag>
 <tag>TC-012</tag>
 <tag>token_stats</tag>
-<status status="PASS" start="2026-11-18T18:26:36.314200" elapsed="13.905521"/>
+<status status="PASS" start="2026-11-19T02:37:34.304034" elapsed="12.452910"/>
 </test>
 <kw name="UI Tutup Sesi Browser Playwright" owner="TokenMonitoringLibrary" type="TEARDOWN">
 <doc>Menutup peramban web dan membersihkan sumber daya.</doc>
-<status status="PASS" start="2026-11-18T18:26:50.227858" elapsed="0.134706"/>
+<status status="PASS" start="2026-11-19T02:37:46.763164" elapsed="0.090025"/>
 </kw>
 <doc>Suite Pengujian Otomasi E2E &amp; Backend Mahkamah Agung Token WABA Monitoring Web UI &amp; BFF
 Tiket: PB192644862601YA &amp; PB192644872602YA | SUT: Mahkamah Agung Monitoring
 Menerapkan Clean BDD Murni, Zero False Positive &amp; Transparent Multi-Layer Logging</doc>
-<status status="PASS" start="2026-11-18T18:24:05.016377" elapsed="165.346299"/>
+<status status="PASS" start="2026-11-19T02:34:18.721186" elapsed="208.132133"/>
 </suite>
-<status status="PASS" start="2026-11-18T18:24:04.972826" elapsed="165.391767"/>
+<status status="PASS" start="2026-11-19T02:34:18.683802" elapsed="208.170943"/>
 </suite>
 <statistics>
 <total>
