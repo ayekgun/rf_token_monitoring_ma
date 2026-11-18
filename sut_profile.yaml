@@ -18,11 +18,17 @@ sut:
 
 auth:
   username: "user.mahkamahagung"
-  password: "jatis123"
+  password_env: "MA_AUTH_PASSWORD"
   display_name: "User Monitoring Mahkamah Agung"
   role: "viewer"
   account_number: "2021041008976462"
   client_key: "mahkamah-agung"
+
+security:
+  mask_tokens: true
+  token_mask_pattern: "eyJhbGciOi...***"
+  sensitive_env_keys:
+    - "MA_AUTH_PASSWORD"
 
 deployment:
   host: "192.168.181.115"

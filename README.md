@@ -25,12 +25,23 @@ Suite otomasi pengujian **Robot Framework** berbasis **True Web UI Testing** unt
 rf_token_monitoring_ma/
 ├── sut_profile.yaml          # Spesifikasi profil SUT, target deployment, akun uji, dan regex audit log
 ├── testcase.csv              # Desain 12 test case terstandarisasi (12 kolom wajib + baris META-SUT)
+├── docs/                     # Dokumentasi spesifikasi CRD
+│   └── CRD_PB192644862601YA_PB192644872602YA.txt
 ├── README.md                 # Dokumentasi proyek otomasi QA
 └── .gitignore                # File ignores
 ```
 
 ---
 
-## 📋 Status Kesiapan QA (Tahap 1 Gate Passed)
+## 🔒 Protokol Keamanan Kredensial & Token Masking
+- **Kredensial Sensitif**: Password akun pengujian tidak disimpan dalam repositori publik. Seluruh kredensial diinjeksi via variabel lingkungan:
+  ```bash
+  export MA_AUTH_PASSWORD="<password_anda>"
+  ```
+- **Masking Token JWT**: Sesuai protokol pengujian sesi (TC-009), token JWT yang ditangkap selama siklus hidup pengujian wajib disamarkan (*masked*) pada seluruh log dan report Robot Framework (`eyJhbGciOi...***`) untuk mencegah kebocoran kredensial sesi.
+
+---
+
+## 📋 Status Kesiapan QA (Tahap 1 Gate Passed - Ready for RF)
 - **Gate 0 (Deployment & Environment Readiness)**: PASSED (HTTP 200 OK pada Web UI & BFF).
-- **Gate 1 (Test Analysis & Testcase Design)**: APPROVED (`READY_FOR_RF`).
+- **Gate 1 (Test Analysis & Testcase Design)**: APPROVED (`READY_FOR_RF`) dengan 4-Lapisan Pembuktian (DOM, Network, SQL/DB, Log Contract) dan audit rentang eksplisit SQL serta kontrak zona waktu Asia/Jakarta.
