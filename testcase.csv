@@ -1,0 +1,242 @@
+Test Case ID,Description,Test Case,Test Scenario,Priority,Test Steps,Test Data/Precondition,Expected Result,Actual Output,Status,Log,Note/Description
+META-SUT,SUT Version & Update Traceability,Mahkamah Agung Token WABA Monitoring Web & BFF v1.1.0 (prev: v1.0.0),Baseline: v1.0.0 | Target: v1.1.0 | Tickets: PB192644862601YA & PB192644872602YA,META,"[U-01] History Window 12 Bulan: app.historyWindowMonths ditingkatkan dari 3 menjadi 12 pada config.yaml BFF dan koleksi clients MongoDB. UI Insight menampilkan 12 bulan terakhir dan dropdown Token Stats memuat 12 bulan.
+[U-02] Sumber Data Agregasi Summary Table: Backend BFF mengalihkan query monitoring dari raw transactions token_transactions_wai ke tabel agregasi token_sync (token_summary_monthly, token_summary_daily, token_account_snapshot, token_summary_checkpoint) di MySQL 192.168.181.58:3306.
+[U-03] Interactive Month Switcher: UI tab Token Stats menyediakan dropdown pilihan 12 bulan yang secara reaktif memuat data metrik ringkasan dan grafik harian per bulan yang dipilih.
+[U-04] Observability & Data Freshness Indicator: UI Dashboard menampilkan indikator tanggal dan jam pembaruan data (Data per [tanggal/jam]) yang bersumber dari metadata summaryAsOf.
+[U-05] RBAC, Session Security & Logout Lifecycle: Proteksi rute dashboard terproteksi, autentikasi sesi berbasis cookie HttpOnly JWT, validasi input form, dan siklus pembersihan sesi saat logout.","SUT Docker Containers:
+- Frontend Web: token-monitoring-web:1.1.0 (Port 4173 -> 80)
+- Backend BFF: token-monitoring-bff:1.1.0 (Port 8014 -> 8080)
+- Network Docker: ma-net
+Target Host: 192.168.181.115
+Remote Paths: /var/opt/MA/frontend dan /var/opt/MA/backend
+Dependencies:
+- MongoDB 192.168.181.106:27017 (token_monitoring: clients, client_users)
+- MySQL Target 192.168.181.58:3306 (token_sync: 4 summary tables)
+Git Repos:
+- custom-landing-page/backend (branch staging, commit d312805)
+- custom-landing-page/frontend (branch staging, commit a794bb2)","[U-01] History Window 12 Bulan -> diuji oleh: TC-002, TC-003, TC-011, TC-012
+[U-02] Sumber Data Agregasi Summary Table -> diuji oleh: TC-002, TC-003, TC-004, TC-005
+[U-03] Interactive Month Switcher -> diuji oleh: TC-003, TC-004, TC-010, TC-012
+[U-04] Observability & Data Freshness Indicator -> diuji oleh: TC-005
+[U-05] RBAC, Session Security & Logout Lifecycle -> diuji oleh: TC-001, TC-006, TC-007, TC-008, TC-009
+Coverage: 12 dari 12 test cases menguji langsung logika baru dan proteksi regresi sistem.",,META,,Dibuat: 2026-11-18 | PIC: QA SDET | Target: Web UI SUT Remote 115
+TC-001,Memverifikasi keberhasilan proses login pengguna monitoring Mahkamah Agung dan pengalihan ke dashboard,Verifikasi login pengguna monitoring dengan kredensial valid berhasil masuk ke dashboard,Login Berhasil - Pengguna memasukkan username dan password valid di halaman login Web UI,P0 - Critical,"1. Buka browser dan arahkan ke alamat URL halaman login aplikasi.
+2. Pastikan field input username dan password telah siap menerima input.
+3. Masukkan username pengguna monitoring pada field Email atau Username.
+4. Masukkan password valid pada field Password.
+5. Klik tombol Login.
+6. Tunggu respons aplikasi dan verifikasi perpindahan ke halaman dashboard.","BEFORE:
+1. Web Browser: Tidak terdapat sesi aktif atau cookie autentikasi sebelumnya.
+2. Backend BFF: Service berjalan stabil di server remote 115.
+3. MongoDB 192.168.181.106:
+   - Koleksi client_users memiliki user aktif username = ""user.mahkamahagung"", role = ""viewer"".
+   - Koleksi clients memiliki dokumen aktif clientKey = ""mahkamah-agung"".
+
+INPUT DATA:
+- Username: ""user.mahkamahagung""
+- Password: ""jatis123""
+- URL Target: http://192.168.181.115:4173/login","EXPECTED RESULT:
+1. Web UI:
+   - Halaman berhasil dialihkan ke URL dashboard (/dashboard?tab=insight).
+   - Header dashboard menampilkan judul utama ""Dashboard Token Usage"".
+   - Subtitle menampilkan nama instansi ""Mahkamah Agung"".
+   - Tombol ""Logout"" berstatus aktif dan terlihat di sudut kanan atas header.
+   - Tab navigasi ""Insight"" berada dalam status aktif (is-active).
+2. Cookie Sesi Browser:
+   - Terbentuk cookie HttpOnly map_access_token dan map_refresh_token.
+3. [LOG CONTRACT]:
+   Log SUT pada file /var/opt/MA/backend/log/token-monitoring-bff.log mencatat event:
+   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""POST"",""path"":""/api/v1/auth/login"",""requestType"":""login"",""sourceSystem"":""mongodb-auth"",""statusCode"":200,""userKey"":""user-ma-stg-001""}",,Not Executed,,Pengujian alur otentikasi utama pengguna Web UI.
+TC-002,Memverifikasi tab Insight menampilkan ringkasan penggunaan token dan grafik 12 bulan terakhir sesuai konfigurasi baru,Verifikasi tab Insight memuat metrik ringkasan dan grafik batang untuk rentang waktu 12 bulan,Tab Insight - Validasi visualisasi 12 bulan riwayat penggunaan dan saldo token Mahkamah Agung,P0 - Critical,"1. Masuk ke aplikasi menggunakan akun pengguna monitoring yang valid.
+2. Akses halaman dashboard dan pastikan tab Insight aktif.
+3. Periksa judul pada kartu grafik Token Usage dan Token Balance.
+4. Hitung jumlah batang data bulanan pada kedua grafik.
+5. Verifikasi nilai ringkasan pada kartu metrik Usage, Top-Up, dan Token Balance.","BEFORE:
+1. User telah berhasil login dan berada pada halaman dashboard tab Insight.
+2. Konfigurasi historyWindowMonths pada config.yaml dan MongoDB bernilai 12.
+3. Tabel MySQL token_sync.token_summary_monthly memiliki data agregasi 12 bulan terakhir (Desember 2025 s/d November 2026).
+
+TARGET DATA SNAPSHOT:
+- Rentang Bulan: 2025-12 s/d 2026-11 (12 bulan)
+- Ekspektasi Metric Usage: 12.843,77
+- Ekspektasi Metric Top-Up: 187.498,88
+- Ekspektasi Metric Token Balance: 5.555,56 (+81,99%)","EXPECTED RESULT:
+1. Web UI:
+   - Judul kartu grafik penggunaan token menampilkan teks persis: ""Token Usage (Last 12 Months)"".
+   - Judul kartu grafik saldo token menampilkan teks persis: ""Token Balance (Last 12 Months)"".
+   - Kedua grafik masing-masing memuat tepat 12 elemen batang bulanan (Desember 2025 s/d November 2026).
+   - Kartu metrik ""Usage"" menampilkan nilai agregasi ""12.843,77"".
+   - Kartu metrik ""Top-Up"" menampilkan nilai agregasi ""187.498,88"".
+   - Kartu metrik ""Token Balance"" menampilkan saldo terkini ""5.555,56"" dengan persentase perubahan ""+81,99%"".
+2. [LOG CONTRACT]:
+   Log SUT mencatat event query insight dari tabel ringkasan:
+   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/insight"",""requestType"":""insight"",""sourceSystem"":""summary-mysql"",""statusCode"":200,""userKey"":""user-ma-stg-001""}
+   Durasi eksekusi upstreamDurationMs tidak melebihi threshold 100ms (optimasi summary table terbukti).",,Not Executed,,Verifikasi pemenuhan Logic Update U-01 dan U-02 pada tab Insight.
+TC-003,Memverifikasi tab Token Stats menampilkan dropdown berisi 12 pilihan bulan dan rincian transaksi bulan berjalan,Verifikasi tab Token Stats memuat daftar 12 bulan pada dropdown dan grafik harian bulan berjalan,Tab Token Stats - Validasi opsi dropdown 12 bulan dan visualisasi transaksi harian bulan November 2026,P0 - Critical,"1. Dari halaman dashboard, klik tab navigasi bertuliskan Token Stats.
+2. Periksa status keaktifan tab Token Stats dan visibilitas kontrol dropdown bulan.
+3. Buka elemen dropdown Select Month pada toolbar dashboard.
+4. Hitung jumlah item opsi bulan yang tersedia di dalam dropdown.
+5. Verifikasi opsi bulan default yang terpilih secara otomatis.
+6. Periksa kartu metrik ringkasan dan jumlah batang harian pada grafik periode berjalan.","BEFORE:
+1. User telah login dan berada di dashboard.
+2. MySQL token_sync memiliki data harian untuk bulan berjalan (November 2026).
+3. MySQL token_sync memiliki data bulanan untuk 12 bulan terakhir.
+
+TARGET DATA SNAPSHOT:
+- Bulan Default: 2026-11 (November 2026)
+- Ekspektasi Metric Usage November: 692,73
+- Ekspektasi Metric Top-Up November: 11.428,02
+- Ekspektasi Metric Token Balance: 5.555,56 (+81,99%)
+- Jumlah Hari November: 30 hari kalender","EXPECTED RESULT:
+1. Web UI:
+   - Tab navigasi ""Token Stats"" berganti status menjadi aktif.
+   - Kontrol dropdown dengan id ""dashboard-token-stats-month"" muncul pada toolbar dashboard.
+   - Dropdown memuat tepat 12 opsi bulan terurut kronologis dari Desember 2025 hingga November 2026.
+   - Opsi default yang terpilih otomatis adalah bulan berjalan (""November 2026"" / value ""2026-11"").
+   - Kartu metrik menampilkan nilai ringkasan bulan berjalan: Usage ""692,73"", Top-Up ""11.428,02"", Saldo ""5.555,56"".
+   - Grafik ""Token Usage (Current Period)"" dan ""Token Balance (Current Period)"" menampilkan 30 batang harian (1 s/d 30).
+2. [LOG CONTRACT]:
+   Log SUT mencatat event pengambilan data token-stats:
+   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/token-stats"",""requestType"":""tokenStats"",""sourceSystem"":""summary-mysql"",""statusCode"":200,""userKey"":""user-ma-stg-001""}",,Not Executed,,Verifikasi pemenuhan Logic Update U-01 dan U-03 pada tab Token Stats.
+TC-004,Memverifikasi interaktivitas pemilihan bulan pada dropdown Token Stats dan pembaruan visual data harian,Verifikasi perubahan pilihan bulan pada dropdown memperbarui ringkasan metrik dan grafik harian,Tab Token Stats - Ganti pilihan bulan ke Oktober 2026 dan verifikasi pembaruan data,P1 - High,"1. Pastikan pengguna berada di tab Token Stats.
+2. Klik elemen dropdown Select Month pada toolbar.
+3. Pilih opsi bulan sebelumnya yaitu Oktober 2026.
+4. Tunggu proses pengambilan data selesai tanpa adanya reload halaman browser.
+5. Verifikasi pembaruan nilai pada kartu metrik ringkasan.
+6. Verifikasi jumlah batang pada grafik harian menyesuaikan jumlah hari bulan Oktober (31 hari).","BEFORE:
+1. Tab Token Stats sedang aktif dan menampilkan data default bulan berjalan (November 2026).
+2. Tabel MySQL token_sync memiliki ringkasan data harian dan bulanan untuk Oktober 2026 (2026-10).
+
+TARGET DATA SNAPSHOT OKTOBER 2026:
+- Bulan Pilihan: 2026-10 (Oktober 2026)
+- Ekspektasi Metric Usage Oktober: 1.357,47
+- Ekspektasi Metric Top-Up Oktober: 14.010,53
+- Ekspektasi Metric Saldo Oktober: 3.052,72 (-6,80%)
+- Jumlah Hari Kalender Oktober: 31 hari","EXPECTED RESULT:
+1. Web UI:
+   - Nilai dropdown terpilih berubah menjadi ""Oktober 2026"".
+   - Nilai kartu metrik ""Usage"" diperbarui menjadi ""1.357,47"".
+   - Nilai kartu metrik ""Top-Up"" diperbarui menjadi ""14.010,53"".
+   - Nilai kartu metrik ""Token Balance"" diperbarui menjadi ""3.052,72"" dengan indikator perubahan ""-6,80%"".
+   - Grafik batang harian menyesuaikan dengan menampilkan 31 titik harian tanggal 1 hingga 31 Oktober 2026.
+2. [LOG CONTRACT]:
+   Log SUT mencatat event request spesifik bulan Oktober:
+   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/token-stats?month=2026-10"",""requestType"":""tokenStats"",""sourceSystem"":""summary-mysql"",""statusCode"":200,""userKey"":""user-ma-stg-001""}",,Not Executed,,Verifikasi pemenuhan Logic Update U-03 interaksi filter bulan.
+TC-005,Memverifikasi indikator Data Freshness di header dashboard menampilkan timestamp checkpoint agregasi summary,Verifikasi teks Data Freshness di header dashboard sesuai data checkpoint pemrosesan database,Dashboard Observability - Validasi teks Data per [tanggal dan jam] di bawah nama instansi,P1 - High,"1. Login ke aplikasi dan amati bagian header dashboard di bawah subtitle Mahkamah Agung.
+2. Cari elemen teks yang memuat informasi waktu pembaruan data.
+3. Bandingkan tanggal dan jam yang tertera pada teks UI dengan nilai checkpoint summary_as_of di database target.
+4. Beralih ke tab Token Stats dan pastikan indikator waktu tetap tampil konsisten.","BEFORE:
+1. User login di dashboard.
+2. Tabel MySQL token_sync.token_summary_checkpoint memiliki baris job_key = ""summary:2021041008976462"" dengan summary_as_of = ""2026-11-18 00:00:00"".
+
+TARGET TEXT FORMAT:
+- Format Tanggal: ""18 Nov 2026, 00.00 WIB""
+- HTML Element: <p class=""data-freshness""> memuat tag <time datetime=""2026-11-18T00:00:00+07:00"">","EXPECTED RESULT:
+1. Web UI:
+   - Elemen teks data-freshness tampil jelas di bawah subtitle ""Mahkamah Agung"".
+   - Teks yang dirender persis berbunyi: ""Data per 18 Nov 2026, 00.00 WIB"".
+   - Tag time memiliki atribut datetime dengan nilai ISO ""2026-11-18T00:00:00+07:00"".
+   - Tidak terjadi kesalahan format waktu atau tampilan null/undefined pada UI.
+2. [LOG CONTRACT]:
+   Log SUT mencatat metadata response yang mengembalikan timestamp summaryAsOf yang valid:
+   ""summaryAsOf"":""2026-11-18T00:00:00+07:00""",,Not Executed,,Verifikasi pemenuhan Logic Update U-04 indikator observabilitas kesegaran data.
+TC-006,Memverifikasi penanganan kegagalan autentikasi dengan pesan error inline saat kredensial tidak cocok,Verifikasi sistem menolak login dengan password salah dan memunculkan pesan error inline,Login Gagal - Pengguna memasukkan username valid tetapi password salah,P1 - High,"1. Buka halaman login aplikasi pada browser.
+2. Masukkan username valid pada field Email atau Username.
+3. Masukkan password yang salah pada field Password.
+4. Klik tombol Login.
+5. Verifikasi pesan kesalahan yang muncul di layar dan pastikan tidak ada pengalihan halaman.","BEFORE:
+1. User berada pada halaman login (http://192.168.181.115:4173/login).
+2. Tidak terdapat sesi aktif.
+
+INPUT DATA:
+- Username: ""user.mahkamahagung""
+- Password: ""PasswordSalah999!""","EXPECTED RESULT:
+1. Web UI:
+   - Pengguna tetap berada pada halaman /login (tidak dialihkan ke dashboard).
+   - Muncul komponen notifikasi pesan inline bernada error (berwarna merah).
+   - Teks pesan error berbunyi: ""Username, email, atau password tidak valid."".
+   - Tombol Login kembali ke status siap klik (tidak mengalami freeze/hang).
+2. [LOG CONTRACT]:
+   Log SUT mencatat kegagalan autentikasi HTTP 401 Unauthorized:
+   {""event"":""request_completed"",""method"":""POST"",""path"":""/api/v1/auth/login"",""requestType"":""login"",""sourceSystem"":""mongodb-auth"",""statusCode"":401}",,Not Executed,,Uji jalur negatif keamanan autentikasi.
+TC-007,Memverifikasi validasi sisi klien pada form login saat field wajib dibiarkan kosong,Verifikasi form login menahan pengiriman form jika salah satu atau kedua field bernilai kosong,Validasi Form - Submit form login dengan field kosong dan verifikasi validasi native browser,P1 - High,"1. Buka halaman login aplikasi.
+2. Biarkan kedua field input (Username dan Password) dalam keadaan kosong.
+3. Klik tombol Login.
+4. Periksa reaksi validasi form pada browser.
+5. Masukkan username saja tanpa mengisi password, lalu klik tombol Login.
+6. Periksa reaksi validasi form pada browser.","BEFORE:
+1. Halaman login terbuka di browser.
+2. Field username dan password memiliki atribut HTML required.","EXPECTED RESULT:
+1. Web UI:
+   - Browser menampilkan peringatan validasi input wajib (HTML5 form validation message).
+   - Form tidak melakukan submit dan tidak ada perubahan halaman.
+   - Tidak ada indikator pemrosesan loading pada tombol Login.
+2. Network & [LOG CONTRACT]:
+   - Tidak ada HTTP request yang dikirimkan ke server backend BFF.
+   - Log SUT /var/opt/MA/backend/log/token-monitoring-bff.log TIDAK mencatat event baru /api/v1/auth/login.",,Not Executed,,Uji validasi batas input form sisi antarmuka.
+TC-008,Memverifikasi proteksi rute terproteksi saat mencoba mengakses URL dashboard secara langsung tanpa sesi login,Verifikasi URL dashboard tidak dapat diakses tanpa autentikasi dan langsung dialihkan ke login,Proteksi Rute - Akses URL dashboard tanpa sesi login aktif,P0 - Critical,"1. Pastikan browser dalam keadaan bersih tanpa cookie sesi login.
+2. Masukkan alamat URL dashboard secara langsung pada address bar browser.
+3. Tekan Enter untuk memuat halaman.
+4. Amati proses pengalihan halaman dan verifikasi halaman akhir yang ditampilkan.","BEFORE:
+1. Browser dalam mode Private/Incognito atau cookie map_access_token telah dihapus.
+2. URL Target: http://192.168.181.115:4173/dashboard?tab=insight","EXPECTED RESULT:
+1. Web UI:
+   - Pengguna tidak diizinkan melihat konten dashboard.
+   - Terjadi pengalihan halaman secara otomatis ke URL /login.
+   - Form login ditampilkan lengkap dan siap menerima kredensial.
+2. [LOG CONTRACT]:
+   - Tidak ada log akses data monitoring (/api/v1/monitoring/*) dengan status 200 pada log SUT.",,Not Executed,,Uji pengamanan rute dashboard berbasis ProtectedRoute.
+TC-009,"Memverifikasi alur logout pengguna, pembersihan sesi pada peramban, dan pengalihan ke halaman login",Verifikasi klik tombol Logout membersihkan sesi aktif dan mengembalikan pengguna ke form login,Logout Lifecycle - Pengguna mengklik tombol Logout dari header dashboard,P0 - Critical,"1. Pastikan pengguna dalam keadaan login aktif di dashboard Token Usage.
+2. Arahkan kursor ke sudut kanan atas header dashboard.
+3. Klik tombol Logout.
+4. Tunggu respons sistem dan verifikasi pengalihan halaman.
+5. Coba gunakan tombol Back pada peramban untuk kembali ke dashboard dan amati hasilnya.","BEFORE:
+1. Pengguna login aktif dengan sesi valid di http://192.168.181.115:4173/dashboard.
+2. Cookie map_access_token dan map_refresh_token aktif di browser.","EXPECTED RESULT:
+1. Web UI:
+   - Pengguna berhasil dikeluarkan dari sistem dan dialihkan ke halaman /login.
+   - Cookie autentikasi browser dibersihkan.
+   - Jika pengguna menekan tombol Back di browser, halaman dashboard tidak dapat dibuka dan tetap dialihkan ke /login.
+2. [LOG CONTRACT]:
+   Log SUT mencatat event pemrosesan logout:
+   {""accountNumber"":""************6462"",""clientKey"":""mahkamah-agung"",""event"":""request_completed"",""method"":""POST"",""path"":""/api/v1/auth/logout"",""requestType"":""logout"",""sourceSystem"":""mongodb-auth"",""statusCode"":200,""userKey"":""user-ma-stg-001""}",,Not Executed,,Uji siklus hidup sesi dan terminasi hak akses.
+TC-010,Memverifikasi navigasi bolak-balik antara tab Insight dan Token Stats mempertahankan integritas UI,Verifikasi perpindahan tab navigasi memperbarui parameter URL dan merender komponen yang tepat,Tab Switcher - Navigasi dinamis antar tab Insight dan Token Stats tanpa full-page reload,P1 - High,"1. Pastikan pengguna berada di tab Insight pada dashboard.
+2. Klik tab navigasi Token Stats.
+3. Periksa perubahan parameter tab pada URL dan tampilan toolbar.
+4. Klik kembali tab navigasi Insight.
+5. Periksa kembalinya parameter URL dan tampilan panel Insight.","BEFORE:
+1. Pengguna login aktif di dashboard pada tab Insight (/dashboard?tab=insight).","EXPECTED RESULT:
+1. Web UI:
+   - Saat klik Token Stats: URL berubah menjadi /dashboard?tab=token-stats, panel Token Stats tampil, dropdown bulan terlihat.
+   - Saat klik kembali Insight: URL berubah menjadi /dashboard?tab=insight, panel Insight tampil, dropdown bulan tersembunyi.
+   - Transisi antarmuka berjalan mulus (single page transition) tanpa kedipan layar atau reload halaman penuh.
+2. [LOG CONTRACT]:
+   Log SUT mencatat masing-masing event requestCompleted saat tab diakses:
+   - GET /api/v1/monitoring/token-stats (statusCode: 200)
+   - GET /api/v1/monitoring/insight (statusCode: 200)",,Not Executed,,Uji stabilitas navigasi antarmuka komponen React.
+TC-011,Memverifikasi interaksi penyorotan (hover) pada batang grafik bulanan tab Insight memunculkan informasi nilai,Verifikasi interaksi hover pada elemen batang grafik menampilkan rincian bulan dan nilai token terformat,Grafik Interaktif - Sorot kursor ke batang grafik bulan berjalan pada kartu Token Usage,P2 - Medium,"1. Berada di tab Insight pada dashboard.
+2. Arahkan kursor mouse ke salah satu batang grafik bulanan pada kartu Token Usage (Last 12 Months).
+3. Amati perubahan visual batang grafik dan kemunculan kotak informasi (tooltip).
+4. Verifikasi teks label bulan dan angka penggunaan yang tertera pada kotak informasi.","BEFORE:
+1. Pengguna login aktif di tab Insight.
+2. Grafik Token Usage menampilkan 12 batang data bulanan.","EXPECTED RESULT:
+1. Web UI:
+   - Elemen batang grafik merespons penyorotan mouse secara visual (highlight/hover effect).
+   - Muncul kotak tooltip interaktif yang memuat informasi bulan dan jumlah token terformat dengan pemisah ribuan.
+   - Nilai pada tooltip selaras dengan data yang dirender.
+2. Console Browser:
+   - Tidak ada error JavaScript (Canvas error / TypeError) pada console browser.",,Not Executed,,Uji pengalaman pengguna dan keandalan komponen grafik canvas.
+TC-012,Memverifikasi ketahanan UI saat memilih bulan dengan aktivitas nol atau data minim pada tab Token Stats,Verifikasi pemilihan bulan dengan aktivitas nol menampilkan nilai 0 tanpa merusak tata letak halaman,Empty State Handling - Pilih bulan tertua (Desember 2025) pada dropdown Token Stats,P2 - Medium,"1. Berada di tab Token Stats.
+2. Buka dropdown Select Month.
+3. Pilih bulan tertua dalam rentang 12 bulan yaitu Desember 2025 (2025-12).
+4. Amati respon UI dan tampilan kartu metrik serta grafik.","BEFORE:
+1. Pengguna berada di tab Token Stats.
+2. Data agregasi bulan Desember 2025 (2025-12) pada tabel ringkasan memiliki nilai penggunaan 0.","EXPECTED RESULT:
+1. Web UI:
+   - Halaman merender data bulan Desember 2025 secara stabil tanpa blank screen atau error 500.
+   - Kartu metrik Usage menampilkan angka 0 token.
+   - Grafik batang menampilkan visualisasi nol yang rapi.
+   - Tidak ada alert error sistem yang mengganggu pengguna.
+2. [LOG CONTRACT]:
+   Log SUT mencatat pengambilan data sukses:
+   {""event"":""request_completed"",""method"":""GET"",""path"":""/api/v1/monitoring/token-stats?month=2025-12"",""statusCode"":200}",,Not Executed,,Uji ketahanan antarmuka terhadap kondisi nilai nol/empty state.

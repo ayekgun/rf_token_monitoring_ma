@@ -1,0 +1,94 @@
+# SUT Profile Specification for Web UI Testing
+# Generated on: 2026-11-18
+# Project: BADAN URUSAN ADMINISTRASI MAHKAMAH AGUNG - Website
+# Tickets: PB192644862601YA & PB192644872602YA
+
+sut:
+  name: "token_monitoring_ma"
+  display_name: "Mahkamah Agung - Token WABA Monitoring Web & BFF"
+  ticket_scheduler: "PB192644862601YA"
+  ticket_dashboard: "PB192644872602YA"
+  version_target: "v1.1.0 (commit feat/add-summary-table & PB192644872602YA)"
+  version_baseline: "v1.0.0"
+  app_url: "http://192.168.181.115:4173"
+  bff_url: "http://192.168.181.115:8014"
+  environment: "remote"
+  history_window_months: 12
+
+auth:
+  username: "user.mahkamahagung"
+  password: "jatis123"
+  display_name: "User Monitoring Mahkamah Agung"
+  role: "viewer"
+  account_number: "2021041008976462"
+  client_key: "mahkamah-agung"
+
+deployment:
+  host: "192.168.181.115"
+  ssh_alias: "115"
+  ssh_user: "bagus"
+  remote_frontend_dir: "/var/opt/MA/frontend"
+  remote_backend_dir: "/var/opt/MA/backend"
+  container_frontend: "token-monitoring-web"
+  container_backend: "token-monitoring-bff"
+  docker_network: "ma-net"
+  ports:
+    frontend: 4173
+    backend_bff: 8014
+
+dependencies:
+  mongo_app_db:
+    host: "192.168.181.106"
+    port: 27017
+    database: "token_monitoring"
+    auth_source: "admin"
+    collections:
+      - "clients"
+      - "client_users"
+      - "api_request_histories"
+  mysql_summary_db:
+    host: "192.168.181.58"
+    port: 3306
+    database: "token_sync"
+    tables:
+      - "token_summary_daily"
+      - "token_summary_monthly"
+      - "token_account_snapshot"
+      - "token_summary_checkpoint"
+  mysql_source_db:
+    host: "10.0.7.12"
+    port: 3306
+    database: "token"
+
+logging:
+  app_log:
+    remote_path: "/var/opt/MA/backend/log/token-monitoring-bff.log"
+    format: "JSON"
+    timestamp_regex: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z'
+    line_prefix_regex: '^{"level":"'
+    info_regex: '"level":"INFO"'
+    warn_regex: '"level":"WARN"'
+    error_regex: '"level":"ERROR"'
+    error_patterns:
+      - '(?i)"level":"ERROR"'
+      - '(?i)"level":"FATAL"'
+      - '(?i)"level":"PANIC"'
+      - '(?i)database exception'
+      - '(?i)syntax error'
+    audit_event_regex:
+      login_success: '"event":"request_completed".*"path":"/api/v1/auth/login".*"statusCode":200'
+      login_failed: '"event":"request_completed".*"path":"/api/v1/auth/login".*"statusCode":401'
+      logout_success: '"event":"request_completed".*"path":"/api/v1/auth/logout".*"statusCode":200'
+      insight_query: '"event":"request_completed".*"path":"/api/v1/monitoring/insight".*"sourceSystem":"summary-mysql".*"statusCode":200'
+      token_stats_query: '"event":"request_completed".*"path":"/api/v1/monitoring/token-stats".*"sourceSystem":"summary-mysql".*"statusCode":200'
+      health_check: '"event":"request_completed".*"path":"/healthz".*"statusCode":200'
+  settle_time: 0.5
+
+browser:
+  headless: false
+  slow_mo: 300
+  spotlight_overlay: true
+  hud_overlay: true
+  viewport:
+    width: 1440
+    height: 900
