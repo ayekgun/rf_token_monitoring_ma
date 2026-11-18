@@ -14,6 +14,7 @@ sut:
   bff_url: "http://192.168.181.115:8014"
   environment: "remote"
   history_window_months: 12
+  fixed_price_per_token: 540
 
 auth:
   username: "user.mahkamahagung"
