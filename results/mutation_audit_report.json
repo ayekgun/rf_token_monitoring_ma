@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-11-19 08:31:20",
+  "total_mutations": 3,
+  "all_sensitivity_proven": true,
+  "results": [
+    {
+      "mutation_id": "MUT-001",
+      "target": "TC-011 Daily Tooltip Tokens",
+      "injected": "expected_floored = 999 (was 60)",
+      "expected_outcome": "FAIL (AssertionError)",
+      "actual_return_code": 1,
+      "passed_sensitivity_check": true
+    },
+    {
+      "mutation_id": "MUT-002",
+      "target": "TC-001 Strict Type Check deep_compare",
+      "injected": "history_window_months: \"12\" (str) vs 12 (int)",
+      "expected_outcome": "FAIL (Type Mismatch)",
+      "actual_return_code": 1,
+      "passed_sensitivity_check": true
+    },
+    {
+      "mutation_id": "MUT-003",
+      "target": "TC-012 Empty State Reason Contract",
+      "injected": "api_empty_reason: \"INVALID_EMPTY_REASON\"",
+      "expected_outcome": "FAIL (AssertionError)",
+      "actual_return_code": 1,
+      "passed_sensitivity_check": true
+    }
+  ]
+}

@@ -16,6 +16,7 @@ import re
 import queue
 import urllib.request
 import urllib.error
+import base64
 from typing import Dict, Any, Optional, List, Tuple
 from pathlib import Path
 import pymysql
@@ -401,8 +402,7 @@ class TokenMonitoringLibrary:
             ssh.close()
             logger.info(f"SSH Log baseline offset: {self.ssh_log_offset} bytes")
         except Exception as e:
-            logger.warn(f"Failed to record SSH log offset: {e}")
-            self.ssh_log_offset = 0
+            raise AssertionError(f"FAIL-FAST: Gagal merekam baseline SSH log offset via {SSH_HOST}: {e}")
 
     def _collect_ssh_log_delta(self) -> List[str]:
         lines = []
@@ -418,9 +418,56 @@ class TokenMonitoringLibrary:
             self.delta_log_lines = lines
             LogHelper._log_chunked(f"[SUT LOG DELTA: {self.current_tc_id}]", "\n".join(lines) if lines else "<NO_DELTA_LOG>")
         except Exception as e:
-            logger.warn(f"Failed to collect SSH log delta: {e}")
-            self.delta_log_lines = []
+            raise AssertionError(f"FAIL-FAST: Gagal mengumpulkan SSH log delta SUT via {SSH_HOST}: {e}")
         return lines
+
+    def assert_sut_log_contract(self, expected_path=None, expected_status=None, expected_source=None, expected_event="request_completed") -> Dict[str, Any]:
+        """
+        Memvalidasi secara ketat bahwa delta log SUT memuat event log terstruktur
+        dengan field wajib: event, path, statusCode, sourceSystem, timestamp, x-request-id, dll.
+        Melempar AssertionError jika kontrak log tidak terpenuhi (FAIL-FAST).
+        """
+        self._collect_ssh_log_delta()
+
+        matched_entries = []
+        for raw_line in self.delta_log_lines:
+            try:
+                doc = json.loads(raw_line)
+            except Exception:
+                continue
+
+            msg = doc.get("message")
+            if not isinstance(msg, dict):
+                continue
+
+            if msg.get("event") != expected_event:
+                continue
+
+            if expected_path and expected_path not in msg.get("path", ""):
+                continue
+
+            if expected_status is not None and int(msg.get("statusCode", 0)) != expected_status:
+                continue
+
+            if expected_source and msg.get("sourceSystem") != expected_source:
+                continue
+
+            if not doc.get("timestamp") or not doc.get("x-request-id"):
+                continue
+
+            matched_entries.append(msg)
+
+        if not matched_entries:
+            LogHelper._log_chunked(f"[SUT RAW DELTA LINES ({len(self.delta_log_lines)})]", "\n".join(self.delta_log_lines))
+            raise AssertionError(
+                f"KONTRAK LOG SUT TIDAK TERPENUHI pada {self.current_tc_id}: "
+                f"Tidak ditemukan entri log dengan event='{expected_event}', path='{expected_path}', "
+                f"statusCode={expected_status}, sourceSystem='{expected_source}'!"
+            )
+
+        entry = matched_entries[0]
+        logger.info(f"KONTRAK LOG SUT VALID ({len(matched_entries)} match): path={entry.get('path')}, status={entry.get('statusCode')}, source={entry.get('sourceSystem')}")
+        return entry
 
     # ==============================================================================
     # DATABASE HELPER (MYSQL & MONGO)
@@ -559,23 +606,57 @@ class TokenMonitoringLibrary:
         if refresh_expires <= access_expires:
             raise AssertionError(f"Masa berlaku map_refresh_token ({refresh_expires}) harus lebih panjang dari access token ({access_expires})!")
 
-        # Verifikasi response body login
+        # Verifikasi klaim JWT dan durasi TTL persis (Access 600s, Refresh 28800s)
+        payload_b64 = access_cookie["value"].split(".")[1]
+        payload_b64 += "=" * ((4 - len(payload_b64) % 4) % 4)
+        access_jwt = json.loads(base64.urlsafe_b64decode(payload_b64).decode())
+        jwt_access_ttl = int(access_jwt.get("exp", 0) - access_jwt.get("iat", 0))
+
+        refresh_b64 = refresh_cookie["value"].split(".")[1]
+        refresh_b64 += "=" * ((4 - len(refresh_b64) % 4) % 4)
+        refresh_jwt = json.loads(base64.urlsafe_b64decode(refresh_b64).decode())
+        jwt_refresh_ttl = int(refresh_jwt.get("exp", 0) - refresh_jwt.get("iat", 0))
+
+        if jwt_access_ttl != 600:
+            raise AssertionError(f"JWT access token TTL bukan tepat 600 detik melainkan {jwt_access_ttl} detik!")
+        if jwt_refresh_ttl != 28800:
+            raise AssertionError(f"JWT refresh token TTL bukan tepat 28800 detik melainkan {jwt_refresh_ttl} detik!")
+
+        # Verifikasi response body login lengkap
         login_data = self.last_login_response.get("data", {}) if self.last_login_response else {}
         user_info = login_data.get("user", {})
         client_info = login_data.get("client", {})
+        auth_info = login_data.get("auth", {})
 
+        if user_info.get("id") != "user-ma-stg-001":
+            raise AssertionError(f"Response login user.id salah: '{user_info.get('id')}', ekspektasi: 'user-ma-stg-001'")
         if user_info.get("username") != DEFAULT_AUTH_USER:
-            raise AssertionError(f"Response login user salah: {user_info.get('username')} != {DEFAULT_AUTH_USER}")
+            raise AssertionError(f"Response login user.username salah: {user_info.get('username')} != {DEFAULT_AUTH_USER}")
+        if user_info.get("role") != "viewer":
+            raise AssertionError(f"Response login user.role salah: '{user_info.get('role')}', ekspektasi: 'viewer'")
+        if client_info.get("id") != "mahkamah-agung":
+            raise AssertionError(f"Response login client.id salah: '{client_info.get('id')}', ekspektasi: 'mahkamah-agung'")
         if client_info.get("historyWindowMonths") != 12:
             raise AssertionError(f"Client historyWindowMonths pada login bukan 12 melainkan {client_info.get('historyWindowMonths')}")
         if client_info.get("businessTimezone") != "Asia/Jakarta":
             raise AssertionError(f"Client businessTimezone pada login bukan Asia/Jakarta melainkan {client_info.get('businessTimezone')}")
+        if auth_info.get("refreshIntervalSeconds") != 600:
+            raise AssertionError(f"Auth refreshIntervalSeconds pada login bukan 600 melainkan {auth_info.get('refreshIntervalSeconds')}")
+
+        # Assertion Kontrak Log SUT
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/auth/login", expected_status=200, expected_source="mongodb-auth")
 
         LogHelper.log_transparent_comparison("TC-001 Authentication & Session Cookies", {
             "http_status": 200,
+            "user_id": "user-ma-stg-001",
             "username": DEFAULT_AUTH_USER,
+            "user_role": "viewer",
+            "client_id": "mahkamah-agung",
             "history_window_months": 12,
             "business_timezone": "Asia/Jakarta",
+            "jwt_access_ttl_seconds": 600,
+            "jwt_refresh_ttl_seconds": 28800,
+            "auth_refresh_interval_seconds": 600,
             "access_cookie_httpOnly": True,
             "access_cookie_path": "/",
             "access_cookie_sameSite": "Lax",
@@ -583,12 +664,19 @@ class TokenMonitoringLibrary:
             "refresh_cookie_path": "/",
             "refresh_cookie_sameSite": "Lax",
             "access_cookie_valid": True,
-            "refresh_cookie_longer_than_access": True
+            "refresh_cookie_longer_than_access": True,
+            "sut_log_event": "request_completed"
         }, {
             "http_status": self.last_login_status,
+            "user_id": user_info.get("id"),
             "username": user_info.get("username"),
+            "user_role": user_info.get("role"),
+            "client_id": client_info.get("id"),
             "history_window_months": client_info.get("historyWindowMonths"),
             "business_timezone": client_info.get("businessTimezone"),
+            "jwt_access_ttl_seconds": jwt_access_ttl,
+            "jwt_refresh_ttl_seconds": jwt_refresh_ttl,
+            "auth_refresh_interval_seconds": auth_info.get("refreshIntervalSeconds"),
             "access_cookie_httpOnly": access_cookie.get("httpOnly"),
             "access_cookie_path": access_cookie.get("path"),
             "access_cookie_sameSite": "Lax" if access_cookie.get("sameSite", "").lower() == "lax" else access_cookie.get("sameSite"),
@@ -596,7 +684,8 @@ class TokenMonitoringLibrary:
             "refresh_cookie_path": refresh_cookie.get("path"),
             "refresh_cookie_sameSite": "Lax" if refresh_cookie.get("sameSite", "").lower() == "lax" else refresh_cookie.get("sameSite"),
             "access_cookie_valid": access_expires > now,
-            "refresh_cookie_longer_than_access": refresh_expires > access_expires
+            "refresh_cookie_longer_than_access": refresh_expires > access_expires,
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
     @keyword("DB Verifikasi Waktu Login Terakhir Pada MongoDB")
@@ -826,6 +915,9 @@ class TokenMonitoringLibrary:
         if "81,99%" not in sec_text and "+81,99%" not in sec_text:
             raise AssertionError(f"Secondary growth badge UI tidak memuat '+81,99%'! Ditemukan: '{sec_text}'")
 
+        # Assertion Kontrak Log SUT
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/monitoring/insight", expected_status=200, expected_source="summary-mysql")
+
         LogHelper.log_transparent_comparison("TC-002 Insight 12 Months SQL vs API vs UI", {
             "api_usage_tokens": expected_usage_tokens,
             "api_topup_tokens": expected_topup_tokens,
@@ -834,7 +926,8 @@ class TokenMonitoringLibrary:
             "ui_usage": expected_usage_str,
             "ui_topup": expected_topup_str,
             "ui_token_balance": expected_bal_str,
-            "ui_growth_badge": "+81,99%"
+            "ui_growth_badge": "+81,99%",
+            "sut_log_event": "request_completed"
         }, {
             "api_usage_tokens": api_usage,
             "api_topup_tokens": api_topup,
@@ -843,7 +936,8 @@ class TokenMonitoringLibrary:
             "ui_usage": ui_metrics.get("Usage"),
             "ui_topup": ui_metrics.get("Top-Up"),
             "ui_token_balance": ui_metrics.get("Token Balance"),
-            "ui_growth_badge": "+81,99%" if "+81,99%" in sec_text else sec_text
+            "ui_growth_badge": "+81,99%" if "+81,99%" in sec_text else sec_text,
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
@@ -979,20 +1073,47 @@ class TokenMonitoringLibrary:
         if abs(api_nov_usage - expected_nov_usage) > 0.01:
             raise AssertionError(f"API Usage November ({api_nov_usage}) != SQL ({expected_nov_usage})")
 
+        # Verifikasi langsung array availableMonths dari API (urutan API: kronologis kalender)
+        expected_available_months = [
+            "2025-12", "2026-01", "2026-02", "2026-03",
+            "2026-04", "2026-05", "2026-06", "2026-07",
+            "2026-08", "2026-09", "2026-10", "2026-11"
+        ]
+        api_months = None
+        for r in reversed(self.network_responses):
+            if "months" in r.get("url", "") and r.get("body"):
+                api_months = r["body"].get("data", {}).get("availableMonths")
+                if api_months:
+                    break
+        if api_months is None and self.last_token_stats_months:
+            api_months = self.last_token_stats_months.get("data", {}).get("availableMonths")
+
+        if not api_months:
+            raise AssertionError("availableMonths tidak ditemukan pada intersepsi network API!")
+        if api_months != expected_available_months:
+            raise AssertionError(f"availableMonths API tidak cocok! Ditemukan: {api_months}, Ekspektasi: {expected_available_months}")
+
+        # Assertion Kontrak Log SUT
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/monitoring/token-stats", expected_status=200, expected_source="summary-mysql")
+
         LogHelper.log_transparent_comparison("TC-003 Dropdown 12 Months & Active Months in SQL", {
             "dropdown_options_count": 12,
             "database_active_months_count": 11,
             "database_december_2025_active_rows": 0,
             "november_daily_points_count": 30,
             "november_api_usage_tokens": expected_nov_usage,
-            "november_ui_usage": expected_nov_str
+            "november_ui_usage": expected_nov_str,
+            "api_available_months": expected_available_months,
+            "sut_log_event": "request_completed"
         }, {
             "dropdown_options_count": len(self.page.query_selector_all("#dashboard-token-stats-month option")),
             "database_active_months_count": len(sql_months),
             "database_december_2025_active_rows": dec_cnt,
             "november_daily_points_count": len(nov_points),
             "november_api_usage_tokens": api_nov_usage,
-            "november_ui_usage": usage_val
+            "november_ui_usage": usage_val,
+            "api_available_months": api_months,
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
@@ -1161,6 +1282,9 @@ class TokenMonitoringLibrary:
         if len(oct_points) != 31:
             raise AssertionError(f"Grafik harian Oktober harus memuat tepat 31 titik harian, ditemukan: {len(oct_points)}")
 
+        # Assertion Kontrak Log SUT
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/monitoring/token-stats", expected_status=200, expected_source="summary-mysql")
+
         LogHelper.log_transparent_comparison("TC-004 October Filter SQL vs AJAX vs UI", {
             "selected_month": "2026-10",
             "sql_day_count": 31,
@@ -1171,7 +1295,8 @@ class TokenMonitoringLibrary:
             "ui_usage": exp_usage_str,
             "ui_topup": exp_topup_str,
             "ui_token_balance": exp_bal_str,
-            "november_residue_cleared": True
+            "november_residue_cleared": True,
+            "sut_log_event": "request_completed"
         }, {
             "selected_month": "2026-10",
             "sql_day_count": day_count,
@@ -1182,7 +1307,8 @@ class TokenMonitoringLibrary:
             "ui_usage": ui_metrics.get("Usage"),
             "ui_topup": ui_metrics.get("Top-Up"),
             "ui_token_balance": ui_metrics.get("Token Balance"),
-            "november_residue_cleared": ui_metrics.get("Usage") != "692"
+            "november_residue_cleared": ui_metrics.get("Usage") != "692",
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
@@ -1271,20 +1397,25 @@ class TokenMonitoringLibrary:
 
         self._clear_highlight()
 
+        # Assertion Kontrak Log SUT
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/monitoring/insight", expected_status=200, expected_source="summary-mysql")
+
         LogHelper.log_transparent_comparison("TC-005 Timezone Multi-Layer Verification", {
             "client_key": CLIENT_KEY,
             "mongo_business_timezone": "Asia/Jakarta",
             "mysql_checkpoint_datetime": "2026-11-18 00:00:00",
             "api_summary_as_of": "2026-11-18T00:00:00+07:00",
             "ui_rendered_freshness": "Data per 18 Nov 2026, 00.00 WIB",
-            "ui_datetime_attr": "2026-11-18T00:00:00+07:00"
+            "ui_datetime_attr": "2026-11-18T00:00:00+07:00",
+            "sut_log_event": "request_completed"
         }, {
             "client_key": CLIENT_KEY,
             "mongo_business_timezone": business_tz,
             "mysql_checkpoint_datetime": raw_as_of,
             "api_summary_as_of": api_summary_as_of,
             "ui_rendered_freshness": freshness_text,
-            "ui_datetime_attr": datetime_attr
+            "ui_datetime_attr": datetime_attr,
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
@@ -1364,18 +1495,23 @@ class TokenMonitoringLibrary:
 
         self._clear_highlight()
 
+        # Assertion Kontrak Log SUT (status 401)
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/auth/login", expected_status=401, expected_source="mongodb-auth")
+
         LogHelper.log_transparent_comparison("TC-006 Login Failure & User Enumeration Mitigation", {
             "wrong_password_http_status": 401,
             "unknown_user_http_status": 401,
             "error_message_uniform": "Username, email, atau password tidak valid.",
             "cookies_issued": False,
-            "valid_user_last_login_unchanged": True
+            "valid_user_last_login_unchanged": True,
+            "sut_log_event": "request_completed"
         }, {
             "wrong_password_http_status": self.wrong_password_status,
             "unknown_user_http_status": self.last_login_status,
             "error_message_uniform": err_text,
             "cookies_issued": len(issued_cookies) > 0,
-            "valid_user_last_login_unchanged": post_last_login_at == self.initial_last_login_at
+            "valid_user_last_login_unchanged": post_last_login_at == self.initial_last_login_at,
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
@@ -1459,20 +1595,25 @@ class TokenMonitoringLibrary:
         post_u = db["client_users"].find_one({"username": DEFAULT_AUTH_USER})
         post_version = post_u.get("sessionVersion", 1) if post_u else 1
 
+        # Assertion Kontrak Log SUT (status 400 Bad Request)
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/auth/login", expected_status=400)
+
         LogHelper.log_transparent_comparison("TC-007 Form Validation & Direct Backend 400", {
             "html5_username_required": True,
             "html5_password_required": True,
             "client_submit_network_requests_count": 0,
             "backend_empty_payload_http_status": 400,
             "backend_error_code": "INVALID_PAYLOAD",
-            "mongo_session_version_unchanged": True
+            "mongo_session_version_unchanged": True,
+            "sut_log_event": "request_completed"
         }, {
             "html5_username_required": self.tc007_user_req,
             "html5_password_required": self.tc007_pass_req,
             "client_submit_network_requests_count": self.tc007_new_requests_count,
             "backend_empty_payload_http_status": backend_status,
             "backend_error_code": backend_code,
-            "mongo_session_version_unchanged": post_version == self.tc007_baseline_session_version
+            "mongo_session_version_unchanged": post_version == self.tc007_baseline_session_version,
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
@@ -1537,6 +1678,9 @@ class TokenMonitoringLibrary:
                     raise AssertionError(f"Code response bukan UNAUTHORIZED_SESSION melainkan {code}")
                 results[ep] = {"status": e.code, "code": code}
 
+        # Assertion Kontrak Log SUT (status 401)
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/monitoring/insight", expected_status=401, expected_source="mongodb-auth")
+
         LogHelper.log_transparent_comparison("TC-008 Protected Route & API Security", {
             "redirected_url_contains": "/login",
             "dashboard_metric_cards_count": 0,
@@ -1544,7 +1688,8 @@ class TokenMonitoringLibrary:
             "direct_insight_api_status": 401,
             "direct_insight_api_code": "UNAUTHORIZED_SESSION",
             "direct_token_stats_api_status": 401,
-            "direct_token_stats_api_code": "UNAUTHORIZED_SESSION"
+            "direct_token_stats_api_code": "UNAUTHORIZED_SESSION",
+            "sut_log_event": "request_completed"
         }, {
             "redirected_url_contains": "/login" if "/login" in self.page.url else self.page.url,
             "dashboard_metric_cards_count": self.tc008_cards_count,
@@ -1552,7 +1697,8 @@ class TokenMonitoringLibrary:
             "direct_insight_api_status": results["/api/v1/monitoring/insight"]["status"],
             "direct_insight_api_code": results["/api/v1/monitoring/insight"]["code"],
             "direct_token_stats_api_status": results["/api/v1/monitoring/token-stats"]["status"],
-            "direct_token_stats_api_code": results["/api/v1/monitoring/token-stats"]["code"]
+            "direct_token_stats_api_code": results["/api/v1/monitoring/token-stats"]["code"],
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
@@ -1666,6 +1812,9 @@ class TokenMonitoringLibrary:
             if replay_code != "UNAUTHORIZED_SESSION":
                 raise AssertionError(f"Code bukan UNAUTHORIZED_SESSION melainkan {replay_code}")
 
+        # Assertion Kontrak Log SUT (status 200 pada logout)
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/auth/logout", expected_status=200, expected_source="mongodb-auth")
+
         LogHelper.log_transparent_comparison("TC-009 Logout Lifecycle & Replay Attack Invalidation", {
             "logout_http_status": 200,
             "logout_logged_out": True,
@@ -1676,7 +1825,8 @@ class TokenMonitoringLibrary:
             "initial_session_version": self.initial_session_version,
             "post_logout_session_version": expected_new_version,
             "replay_attack_http_status": 401,
-            "replay_attack_error_code": "UNAUTHORIZED_SESSION"
+            "replay_attack_error_code": "UNAUTHORIZED_SESSION",
+            "sut_log_event": "request_completed"
         }, {
             "logout_http_status": self.last_logout_status,
             "logout_logged_out": self.tc009_logout_data.get("loggedOut"),
@@ -1687,7 +1837,8 @@ class TokenMonitoringLibrary:
             "initial_session_version": self.initial_session_version,
             "post_logout_session_version": new_version,
             "replay_attack_http_status": replay_status,
-            "replay_attack_error_code": replay_code
+            "replay_attack_error_code": replay_code,
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
@@ -1735,11 +1886,17 @@ class TokenMonitoringLibrary:
             raise AssertionError(f"FAIL-FAST: Gagal merekam baseline process threads backend via SSH: {e}")
 
         self.roundtrip_requests = []
+        self.roundtrip_responses = []
         def _track_req(req):
             if "/api/v1/monitoring/" in req.url:
-                self.roundtrip_requests.append(req.url)
-        self._rt_listener = _track_req
-        self.page.on("request", self._rt_listener)
+                self.roundtrip_requests.append({"url": req.url, "method": req.method})
+        def _track_res(res):
+            if "/api/v1/monitoring/" in res.url:
+                self.roundtrip_responses.append({"url": res.url, "status": res.status, "method": res.request.method})
+        self._rt_req_listener = _track_req
+        self._rt_res_listener = _track_res
+        self.page.on("request", self._rt_req_listener)
+        self.page.on("response", self._rt_res_listener)
 
         logger.info(f"Baseline MySQL Threads_connected: {self.baseline_threads_connected}, SUT DB Conns: {self.baseline_sut_db_conns}, SUT Process Threads: {self.baseline_process_threads}")
 
@@ -1747,6 +1904,9 @@ class TokenMonitoringLibrary:
     def perform_three_roundtrips_navigation(self):
         """Melakukan perpindahan tab Insight <-> Token Stats sebanyak 3 kali."""
         self.ensure_on_insight_tab()
+        # Reset request & response tracking agar hanya mencatat tepat 3 roundtrip
+        self.roundtrip_requests = []
+        self.roundtrip_responses = []
         for i in range(1, 4):
             self._update_hud("WHEN", f"Navigasi Putaran {i}/3", "Beralih tab Token Stats")
             self._highlight("#dashboard-tab-token-stats", f"Round {i}: Token Stats")
@@ -1771,10 +1931,12 @@ class TokenMonitoringLibrary:
         self._update_hud("THEN", "Verifikasi Integritas DOM & Ketiadaan Leak", "12 Batang grafik utuh, request terkendali & koneksi MySQL normal")
         self._highlight("#dashboard-panel-insight .chart-grid", "12 Batang Grafik Utuh")
 
-        # Lepas request listener
+        # Lepas request & response listener
         try:
-            if hasattr(self, "_rt_listener"):
-                self.page.remove_listener("request", self._rt_listener)
+            if hasattr(self, "_rt_req_listener"):
+                self.page.remove_listener("request", self._rt_req_listener)
+            if hasattr(self, "_rt_res_listener"):
+                self.page.remove_listener("response", self._rt_res_listener)
         except Exception:
             pass
 
@@ -1822,11 +1984,31 @@ class TokenMonitoringLibrary:
         if ui_metrics.get("Token Balance") != "5.555":
             raise AssertionError(f"Metrik UI Token Balance berubah setelah roundtrip! Ditemukan: '{ui_metrics.get('Token Balance')}', Ekspektasi: '5.555'")
 
-        # 4. Verifikasi request monitoring: total di rentang 30 s/d 36 request (5 s/d 6 request per tab switch)
+        # 4. Verifikasi request monitoring: distribusi per endpoint dan status HTTP 200
         total_reqs = len(self.roundtrip_requests)
         logger.info(f"Total monitoring requests captured during 3 roundtrips: {total_reqs}")
         if total_reqs < 30 or total_reqs > 36:
             raise AssertionError(f"Jumlah request monitoring tidak normal ({total_reqs})! Diharapkan rentang [30, 36] untuk 3 putaran (6 perpindahan tab).")
+
+        # Pastikan seluruh response HTTP monitoring berstatus 200 OK
+        non_200_responses = [r for r in self.roundtrip_responses if r["status"] != 200]
+        if non_200_responses:
+            raise AssertionError(f"Ditemukan respons monitoring bukan 200 OK saat roundtrip: {non_200_responses}")
+
+        # Verifikasi distribusi request per endpoint (masing-masing segmen dipanggil tepat 3x)
+        endpoint_counts = {}
+        for r in self.roundtrip_requests:
+            u = r["url"].split("?")[0]
+            endpoint_counts[u] = endpoint_counts.get(u, 0) + 1
+        logger.info(f"Distribusi Request per Endpoint: {endpoint_counts}")
+
+        for ep, count in endpoint_counts.items():
+            if "months" in ep:
+                if count != 1:
+                    raise AssertionError(f"Distribusi request tidak normal untuk metadata dropdown {ep}: dipanggil {count}x (seharusnya tepat 1x karena di-cache komponen)!")
+            else:
+                if count != 3:
+                    raise AssertionError(f"Distribusi request tidak seimbang untuk segmen data {ep}: dipanggil {count}x (seharusnya tepat 3x untuk 3 roundtrips)!")
 
         # 5. Verifikasi koneksi MySQL pool SUT dan global Threads_connected
         conn = self._get_mysql_conn()
@@ -1852,7 +2034,7 @@ class TokenMonitoringLibrary:
         if delta_mysql > 2:
             raise AssertionError(f"Terjadi kebocoran koneksi MySQL! Delta={delta_mysql} > 2 (Baseline={self.baseline_threads_connected}, Post={post_threads})")
 
-        # 6. Verifikasi SUT process threads / goroutines via SSH (fail-fast jika gagal)
+        # 6. Verifikasi Linux OS Process Threads backend SUT (/proc/<pid>/status Threads:) via SSH (fail-fast)
         try:
             ssh = self._get_ssh_client()
             stdin, stdout, stderr = ssh.exec_command("cat /proc/$(pgrep -f /app/token-monitoring-bff | head -n1)/status | grep -i threads")
@@ -1861,47 +2043,58 @@ class TokenMonitoringLibrary:
             m = re.search(r'\d+', out)
             if not m:
                 raise AssertionError(f"Gagal mengekstrak post process threads dari output SSH: '{out}'")
-            post_process_threads = int(m.group(0))
+            post_os_threads = int(m.group(0))
         except Exception as e:
             raise AssertionError(f"FAIL-FAST: Gagal memeriksa post process threads SUT via SSH: {e}")
 
-        delta_threads = abs(post_process_threads - self.baseline_process_threads)
-        logger.info(f"SUT Process Threads: Baseline={self.baseline_process_threads}, Post={post_process_threads}, Delta={delta_threads}")
-        if delta_threads > 5:
-            raise AssertionError(f"Terjadi kebocoran goroutine/thread pada SUT backend! Delta={delta_threads} > 5 (Baseline={self.baseline_process_threads}, Post={post_process_threads})")
+        delta_os_threads = abs(post_os_threads - self.baseline_process_threads)
+        logger.info(f"SUT Backend OS Process Threads: Baseline={self.baseline_process_threads}, Post={post_os_threads}, Delta={delta_os_threads}")
+        if delta_os_threads > 5:
+            raise AssertionError(f"Terjadi kebocoran thread proses OS pada SUT backend! Delta={delta_os_threads} > 5 (Baseline={self.baseline_process_threads}, Post={post_os_threads})")
 
         self._clear_highlight()
+
+        # Assertion Kontrak Log SUT
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/monitoring/", expected_status=200, expected_source="summary-mysql")
 
         LogHelper.log_transparent_comparison("TC-010 Roundtrip Stability & Connection Leak Audit", {
             "roundtrips_executed": 3,
             "total_requests_within_range_30_36": True,
+            "all_monitoring_responses_status_200": True,
+            "segment_endpoints_exact_3_calls": True,
+            "months_metadata_exact_1_call": True,
             "usage_chart_points_count": 12,
             "balance_chart_points_count": 12,
             "sut_db_connections_delta_le_1": True,
             "sut_db_pool_within_limit_5": True,
             "mysql_threads_delta_le_2": True,
-            "backend_threads_delta_le_5": True,
+            "sut_os_process_threads_delta_le_5": True,
             "ui_usage": "12.843",
             "ui_topup": "187.498",
-            "ui_balance": "5.555"
+            "ui_balance": "5.555",
+            "sut_log_event": "request_completed"
         }, {
             "roundtrips_executed": 3,
             "total_requests_within_range_30_36": 30 <= total_reqs <= 36,
+            "all_monitoring_responses_status_200": len(non_200_responses) == 0,
+            "segment_endpoints_exact_3_calls": all(c == 3 for ep, c in endpoint_counts.items() if "months" not in ep),
+            "months_metadata_exact_1_call": all(c == 1 for ep, c in endpoint_counts.items() if "months" in ep),
             "usage_chart_points_count": len(usage_points),
             "balance_chart_points_count": len(balance_points),
             "sut_db_connections_delta_le_1": delta_sut_conns <= 1,
             "sut_db_pool_within_limit_5": post_sut_db_conns <= 5,
             "mysql_threads_delta_le_2": delta_mysql <= 2,
-            "backend_threads_delta_le_5": delta_threads <= 5,
+            "sut_os_process_threads_delta_le_5": delta_os_threads <= 5,
             "ui_usage": ui_metrics.get("Usage"),
             "ui_topup": ui_metrics.get("Top-Up"),
-            "ui_balance": ui_metrics.get("Token Balance")
+            "ui_balance": ui_metrics.get("Token Balance"),
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
             "TC-010",
-            f"Navigasi 3x roundtrip stabil. DOM utuh 12 batang kedua grafik. MySQL Threads_connected Delta={delta_mysql} (<=2). SUT backend threads Delta={delta_threads} (<=5). Total requests={total_reqs}.",
-            f"Baseline threads={self.baseline_threads_connected}, Post={post_threads}. SUT process threads={post_process_threads}. No connection or goroutine leak."
+            f"Navigasi 3x roundtrip stabil. DOM utuh 12 batang kedua grafik. MySQL Threads_connected Delta={delta_mysql} (<=2). SUT backend threads Delta={delta_os_threads} (<=5). Total requests={total_reqs}.",
+            f"Baseline threads={self.baseline_threads_connected}, Post={post_threads}. SUT process threads={post_os_threads}. No connection or thread leak."
         )
 
     # ==============================================================================
@@ -2043,6 +2236,9 @@ class TokenMonitoringLibrary:
         if warning_logs:
             raise AssertionError(f"Ditemukan log warning/error pada SUT saat render grafik: {warning_logs}")
 
+        # Assertion Kontrak Log SUT
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/monitoring/token-stats", expected_status=200, expected_source="summary-mysql")
+
         expected_tooltip_str = f"Nov 18, 2026Total token: {expected_floored}"
         LogHelper.log_transparent_comparison("TC-011 Daily Tooltip vs SQL", {
             "target_date": "2026-11-18",
@@ -2052,7 +2248,8 @@ class TokenMonitoringLibrary:
             "ui_tooltip_text": expected_tooltip_str,
             "tooltip_hidden_on_leave": True,
             "browser_console_errors_count": 0,
-            "sut_log_clean": True
+            "sut_log_clean": True,
+            "sut_log_event": "request_completed"
         }, {
             "target_date": "2026-11-18",
             "sql_raw_usage": raw_usage,
@@ -2061,7 +2258,8 @@ class TokenMonitoringLibrary:
             "ui_tooltip_text": tt_text,
             "tooltip_hidden_on_leave": is_hidden,
             "browser_console_errors_count": len(self.console_errors),
-            "sut_log_clean": len(warning_logs) == 0
+            "sut_log_clean": len(warning_logs) == 0,
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
@@ -2129,7 +2327,7 @@ class TokenMonitoringLibrary:
 
         expected_bal_str = f"{int(expected_balance_tokens):,}".replace(",", ".")
 
-        # 3. Ekstraksi response AJAX dan kontrak endpoint teragregasi BFF untuk month=2025-12
+        # 3. Validasi Kontrak Endpoint Teragregasi BFF (NO SILENT DEFAULT, ZERO FALLBACK STRICT)
         cookies = self.context.cookies()
         cookie_hdr = "; ".join(f"{c['name']}={c['value']}" for c in cookies if c.get("value"))
         req_agg = urllib.request.Request(
@@ -2139,36 +2337,68 @@ class TokenMonitoringLibrary:
         )
         with urllib.request.urlopen(req_agg) as resp_agg:
             agg_json = json.loads(resp_agg.read().decode())
-            agg_data = agg_json.get("data", {})
+            agg_data = agg_json.get("data")
+            if not isinstance(agg_data, dict):
+                raise AssertionError(f"Respons endpoint teragregasi tidak memuat data! Body: {agg_json}")
 
-        api_usage = float(agg_data.get("summary", {}).get("usageTokens", 0.0))
-        api_topup = float(agg_data.get("summary", {}).get("topUpTokens", 0.0))
-        api_bal = float(agg_data.get("summary", {}).get("tokenBalance", 0.0))
-        api_state = agg_data.get("state") or {}
-        api_no_data = api_state.get("noData")
-        api_empty_reason = api_state.get("emptyReason")
-        zero_chart_points = agg_data.get("charts", {}).get("usageCurrentPeriod", {}).get("points", [])
+        summary = agg_data.get("summary")
+        if not isinstance(summary, dict):
+            raise AssertionError("Objek 'summary' hilang dari respons API token-stats 2025-12!")
 
-        # Assertion wajib: Field API tidak boleh None!
-        if api_usage is None or api_topup is None or api_bal is None:
-            raise AssertionError(f"FAIL-FAST: Field wajib API Desember 2025 tidak boleh None! usage={api_usage}, topup={api_topup}, balance={api_bal}")
+        # Validasi eksistensi field tanpa silent default fallback
+        for k in ("usageTokens", "topUpTokens", "tokenBalance"):
+            if k not in summary:
+                raise AssertionError(f"FAIL-FAST: Field wajib summary '{k}' tidak ditemukan pada respons API!")
+            if summary[k] is None:
+                raise AssertionError(f"FAIL-FAST: Field wajib summary '{k}' bernilai None pada respons API!")
+
+        api_usage = float(summary["usageTokens"])
+        api_topup = float(summary["topUpTokens"])
+        api_bal = float(summary["tokenBalance"])
 
         if api_usage != 0.0:
-            raise AssertionError(f"API Usage Desember bukan 0 melainkan {api_usage}")
+            raise AssertionError(f"API Usage Desember bukan 0.0 melainkan {api_usage}")
         if api_topup != 0.0:
-            raise AssertionError(f"API TopUp Desember bukan 0 melainkan {api_topup}")
+            raise AssertionError(f"API TopUp Desember bukan 0.0 melainkan {api_topup}")
         if abs(api_bal - expected_balance_tokens) > 0.01:
             raise AssertionError(f"API tokenBalance ({api_bal}) tidak cocok dengan saldo carry-forward ({expected_balance_tokens})!")
+
+        state = agg_data.get("state")
+        if not isinstance(state, dict):
+            raise AssertionError("Objek 'state' hilang dari respons API token-stats 2025-12!")
+
+        for sk in ("noData", "emptyReason", "message"):
+            if sk not in state or state[sk] is None:
+                raise AssertionError(f"FAIL-FAST: Field wajib state '{sk}' tidak ada atau None!")
+
+        api_no_data = state["noData"]
+        api_empty_reason = state["emptyReason"]
+        api_empty_message = state["message"]
 
         if api_no_data is not True:
             raise AssertionError(f"API state.noData bukan True melainkan {api_no_data}")
         if api_empty_reason != "NO_TRANSACTIONS_IN_SELECTED_MONTH":
             raise AssertionError(f"API state.emptyReason salah! Ditemukan: '{api_empty_reason}', Ekspektasi: 'NO_TRANSACTIONS_IN_SELECTED_MONTH'")
+        if "Belum ada transaksi token untuk bulan 2025-12" not in api_empty_message:
+            raise AssertionError(f"Pesan informatif emptyReason salah: '{api_empty_message}'")
+
+        charts = agg_data.get("charts", {})
+        usage_chart = charts.get("usageCurrentPeriod", {})
+        zero_chart_points = usage_chart.get("points")
+        if not isinstance(zero_chart_points, list):
+            raise AssertionError("Array series points pada usageCurrentPeriod tidak ditemukan atau bukan list!")
 
         if len(zero_chart_points) != 31:
-            raise AssertionError(f"Grafik Desember 2025 harus memuat 31 titik bernilai nol, ditemukan: {len(zero_chart_points)}")
-        if not all(p.get("value", 0.0) == 0.0 for p in zero_chart_points):
-            raise AssertionError("Ada titik grafik Desember 2025 yang bernilai bukan nol!")
+            raise AssertionError(f"Grafik Desember 2025 harus memuat 31 titik hari kalender, ditemukan: {len(zero_chart_points)}")
+
+        for idx, p in enumerate(zero_chart_points, 1):
+            if "value" not in p:
+                raise AssertionError(f"Titik grafik ke-{idx} tidak memiliki key 'value'!")
+            if p["value"] is None:
+                raise AssertionError(f"Titik grafik ke-{idx} memiliki 'value' bernilai None!")
+            val = float(p["value"])
+            if val != 0.0:
+                raise AssertionError(f"Titik grafik ke-{idx} bernilai bukan nol: {val}")
 
         self._update_hud("THEN", "Verifikasi Empty State & Retensi Saldo", f"Usage=0, TopUp=0, Saldo carry-forward {expected_bal_str}")
         self._highlight('#dashboard-panel-token-stats .metric-card:has(.metric-card__label:has-text("Usage"))', "Usage: 0")
@@ -2197,6 +2427,9 @@ class TokenMonitoringLibrary:
         if len(modals) > 0:
             raise AssertionError("Muncul error view pada pemilihan bulan kosong!")
 
+        # Assertion Kontrak Log SUT
+        sut_log = self.assert_sut_log_contract(expected_path="/api/v1/monitoring/token-stats", expected_status=200, expected_source="summary-mysql")
+
         LogHelper.log_transparent_comparison("TC-012 Empty Month vs SQL Carry-Forward", {
             "selected_month": "2025-12",
             "sql_monthly_row_count": 0,
@@ -2210,7 +2443,8 @@ class TokenMonitoringLibrary:
             "api_chart_zero_points_count": 31,
             "ui_usage": "0",
             "ui_topup": "0",
-            "ui_token_balance": expected_bal_str
+            "ui_token_balance": expected_bal_str,
+            "sut_log_event": "request_completed"
         }, {
             "selected_month": "2025-12",
             "sql_monthly_row_count": dec_cnt,
@@ -2224,7 +2458,8 @@ class TokenMonitoringLibrary:
             "api_chart_zero_points_count": len(zero_chart_points),
             "ui_usage": ui_metrics.get("Usage"),
             "ui_topup": ui_metrics.get("Top-Up"),
-            "ui_token_balance": ui_metrics.get("Token Balance")
+            "ui_token_balance": ui_metrics.get("Token Balance"),
+            "sut_log_event": sut_log.get("event")
         }, raise_on_mismatch=True)
 
         self.register_evidence(
