@@ -42,6 +42,14 @@ deployment:
   ports:
     frontend: 4173
     backend_bff: 8014
+  baseline_v1_0_0:
+    remote_frontend_dir: "/var/opt/MA/frontend_backup"
+    remote_backend_dir: "/var/opt/MA/backend_backup"
+    container_frontend: "token-monitoring-web-old"
+    container_backend: "token-monitoring-bff-old"
+    ports:
+      frontend: 4174
+      backend_bff: 8015
 
 dependencies:
   mongo_app_db:
