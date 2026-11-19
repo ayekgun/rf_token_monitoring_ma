@@ -384,7 +384,8 @@ class HumanReadableExcelBuilder:
     def _build_tab1_executive_dashboard(self):
         ws = self.wb.create_sheet(title="Executive Dashboard")
         ws.views.sheetView[0].showGridLines = True
-        ws.freeze_panes = "A18"  # Freeze tepat di atas tabel updates
+        # ws.freeze_panes = None (Disabled on Tab 1 so all rows are visible without blocking viewport)
+        ws.freeze_panes = None  # Freeze tepat di atas tabel updates
 
         # ----------------------------------------------------------------------
         # 1. HEADER SECTION (Clean & Modern)
