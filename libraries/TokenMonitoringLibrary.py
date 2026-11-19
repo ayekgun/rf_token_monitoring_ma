@@ -2643,13 +2643,16 @@ class TokenMonitoringLibrary:
 
         passwd = _require_env("MA_AUTH_PASSWORD", DEFAULT_AUTH_PASS)
 
-        # 1. Autentikasi ke kedua versi (OLD port 8015 dan NEW port 8014)
-        res_old_login = requests.post(f"{OLD_BFF_URL}/api/v1/auth/login", json={"usernameOrEmail": DEFAULT_AUTH_USER, "password": passwd}, timeout=10)
+        # 1. Autentikasi dengan Persistent Session ke kedua versi (OLD port 8015 dan NEW port 8014)
+        session_old = requests.Session()
+        session_new = requests.Session()
+
+        res_old_login = session_old.post(f"{OLD_BFF_URL}/api/v1/auth/login", json={"usernameOrEmail": DEFAULT_AUTH_USER, "password": passwd}, timeout=10)
         token_old = res_old_login.cookies.get("map_access_token", "")
         if not token_old:
             raise AssertionError(f"Gagal login ke Backend OLD v1.0.0 ({OLD_BFF_URL})! Status: {res_old_login.status_code}")
 
-        res_new_login = requests.post(f"{BFF_URL}/api/v1/auth/login", json={"usernameOrEmail": DEFAULT_AUTH_USER, "password": passwd}, timeout=10)
+        res_new_login = session_new.post(f"{BFF_URL}/api/v1/auth/login", json={"usernameOrEmail": DEFAULT_AUTH_USER, "password": passwd}, timeout=10)
         token_new = res_new_login.cookies.get("map_access_token", "")
         if not token_new:
             raise AssertionError(f"Gagal login ke Backend NEW v1.1.0 ({BFF_URL})! Status: {res_new_login.status_code}")
@@ -2657,35 +2660,40 @@ class TokenMonitoringLibrary:
         cookies_old = {"map_access_token": token_old}
         cookies_new = {"map_access_token": token_new}
 
-        # 2. Interleaved API Benchmark (10x pengukuran bergantian untuk menghilangkan bias warm-up/cache)
+        # Warm-up (3 request sebelum pengukuran untuk stabilisasi koneksi)
+        for _ in range(3):
+            session_old.get(f"{OLD_BFF_URL}/api/v1/monitoring/insight", timeout=10)
+            session_new.get(f"{BFF_URL}/api/v1/monitoring/insight", timeout=10)
+
+        # 2. Interleaved API Benchmark (30x pengukuran bergantian dengan session persistent & HTTP keep-alive)
         api_times_old = []
         api_times_new = []
 
-        for i in range(10):
+        for i in range(30):
             if i % 2 == 0:
                 t0 = time.perf_counter()
-                r_old = requests.get(f"{OLD_BFF_URL}/api/v1/monitoring/insight", cookies=cookies_old, timeout=10)
+                r_old = session_old.get(f"{OLD_BFF_URL}/api/v1/monitoring/insight", timeout=10)
                 t1 = time.perf_counter()
                 if r_old.status_code != 200:
                     raise AssertionError(f"API OLD gagal kode {r_old.status_code}: {r_old.text}")
                 api_times_old.append((t1 - t0) * 1000.0)
 
                 t2 = time.perf_counter()
-                r_new = requests.get(f"{BFF_URL}/api/v1/monitoring/insight", cookies=cookies_new, timeout=10)
+                r_new = session_new.get(f"{BFF_URL}/api/v1/monitoring/insight", timeout=10)
                 t3 = time.perf_counter()
                 if r_new.status_code != 200:
                     raise AssertionError(f"API NEW gagal kode {r_new.status_code}: {r_new.text}")
                 api_times_new.append((t3 - t2) * 1000.0)
             else:
                 t2 = time.perf_counter()
-                r_new = requests.get(f"{BFF_URL}/api/v1/monitoring/insight", cookies=cookies_new, timeout=10)
+                r_new = session_new.get(f"{BFF_URL}/api/v1/monitoring/insight", timeout=10)
                 t3 = time.perf_counter()
                 if r_new.status_code != 200:
                     raise AssertionError(f"API NEW gagal kode {r_new.status_code}: {r_new.text}")
                 api_times_new.append((t3 - t2) * 1000.0)
 
                 t0 = time.perf_counter()
-                r_old = requests.get(f"{OLD_BFF_URL}/api/v1/monitoring/insight", cookies=cookies_old, timeout=10)
+                r_old = session_old.get(f"{OLD_BFF_URL}/api/v1/monitoring/insight", timeout=10)
                 t1 = time.perf_counter()
                 if r_old.status_code != 200:
                     raise AssertionError(f"API OLD gagal kode {r_old.status_code}: {r_old.text}")
@@ -2695,10 +2703,13 @@ class TokenMonitoringLibrary:
         p95_old_api = self._calculate_p95(api_times_old)
         avg_new_api = statistics.mean(api_times_new)
         p95_new_api = self._calculate_p95(api_times_new)
-        imp_api = ((avg_old_api - avg_new_api) / avg_old_api) * 100.0
+        imp_api = ((avg_old_api - avg_new_api) / avg_old_api) * 100.0 if avg_old_api > 0 else 0.0
+        imp_p95_api = ((p95_old_api - p95_new_api) / p95_old_api) * 100.0 if p95_old_api > 0 else 0.0
 
         self.bench_api = {
-            "iterations": 10,
+            "iterations": 30,
+            "session_persistence": True,
+            "warmup_done": True,
             "interleaved": True,
             "avg_old_ms": round(avg_old_api, 2),
             "p95_old_ms": round(p95_old_api, 2),
@@ -2708,7 +2719,8 @@ class TokenMonitoringLibrary:
             "p95_new_ms": round(p95_new_api, 2),
             "min_new_ms": round(min(api_times_new), 2),
             "max_new_ms": round(max(api_times_new), 2),
-            "improvement_pct": round(imp_api, 2)
+            "improvement_pct": round(imp_api, 2),
+            "p95_improvement_pct": round(imp_p95_api, 2)
         }
 
         # 3. Interleaved UI Dashboard Load Benchmark (5x pengukuran bergantian alternating order)
@@ -2853,9 +2865,11 @@ class TokenMonitoringLibrary:
         if self.bench_db["improvement_pct"] < 50.0:
             raise AssertionError(f"Peningkatan performa kueri database tidak mencapai target 50%! Aktual: {self.bench_db['improvement_pct']}%")
 
-        # 2. Asersi API
+        # 2. Asersi API (Baik Rata-Rata maupun P95 Tail Latency terbukti meningkat signifikan)
         if self.bench_api["improvement_pct"] < 30.0:
-            raise AssertionError(f"Peningkatan performa API respons live A/B tidak mencapai target 30%! Aktual: {self.bench_api['improvement_pct']}%")
+            raise AssertionError(f"Peningkatan performa API respons rata-rata tidak mencapai target 30%! Aktual: {self.bench_api['improvement_pct']}%")
+        if self.bench_api["p95_improvement_pct"] < 30.0:
+            raise AssertionError(f"Peningkatan performa API P95 (tail latency) tidak mencapai target 30%! Aktual: {self.bench_api['p95_improvement_pct']}%")
 
         # 3. Asersi Web UI (SLA < 2.000 ms & Stabilitas Render 12 Bulan vs 3 Bulan)
         avg_ui_new = self.bench_ui["avg_new_ms"]
@@ -2891,7 +2905,8 @@ class TokenMonitoringLibrary:
 
         expected_benchmarks = {
             "db_query_meets_50pct_improvement": True,
-            "api_response_meets_30pct_improvement": True,
+            "api_response_avg_meets_30pct_improvement": True,
+            "api_response_p95_meets_30pct_improvement": True,
             "ui_dashboard_avg_meets_sla_2000ms": True,
             "ui_dashboard_p95_meets_sla_2000ms": True,
             "concurrent_user_1_error_rate_pct": 0.0,
@@ -2904,7 +2919,8 @@ class TokenMonitoringLibrary:
 
         actual_benchmarks = {
             "db_query_meets_50pct_improvement": self.bench_db["improvement_pct"] >= 50.0,
-            "api_response_meets_30pct_improvement": self.bench_api["improvement_pct"] >= 30.0,
+            "api_response_avg_meets_30pct_improvement": self.bench_api["improvement_pct"] >= 30.0,
+            "api_response_p95_meets_30pct_improvement": self.bench_api["p95_improvement_pct"] >= 30.0,
             "ui_dashboard_avg_meets_sla_2000ms": self.bench_ui["avg_new_ms"] < 2000.0,
             "ui_dashboard_p95_meets_sla_2000ms": self.bench_ui["p95_new_ms"] < 2000.0,
             "concurrent_user_1_error_rate_pct": self.bench_concurrency["user_1"]["new_v1_1_0"]["error_rate_pct"],
