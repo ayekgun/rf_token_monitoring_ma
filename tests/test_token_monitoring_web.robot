@@ -95,3 +95,10 @@ TC-013 Komparasi Kinerja Tiga Lapisan Before After Dan Audit Akurasi Kelengkapan
     When Pengukuran Kinerja API Dan Waktu Muat Antarmuka Dashboard Terekam
     Then Peningkatan Kinerja Tiga Lapisan Terbukti Sesuai Formula Dan Target
     And Akurasi Kelengkapan Serta Keandalan Agregasi Terverifikasi Seratus Persen
+
+
+TC-014 Verifikasi Autentisitas Build Identity Multi Versi Docker Container Dan Perilaku DOM Antarmuka
+    [Tags]    P1    TC-014    audit    build_identity    container    docker    isolation    a_b_testing
+    Given Metadata Docker Container SUT v1.0.0 Dan v1.1.0 Diperiksa Melalui SSH Host Staging
+    When Kontrak Respons API Dan Reverse Proxy Diuji Keandalan Isolasinya
+    Then Identitas Build Lama Dan Baru Terbukti Otentik Serta Perbedaan DOM Tervalidasi Nyata

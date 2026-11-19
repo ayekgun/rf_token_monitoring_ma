@@ -47,9 +47,33 @@ deployment:
     remote_backend_dir: "/var/opt/MA/backend_backup"
     container_frontend: "token-monitoring-web-old"
     container_backend: "token-monitoring-bff-old"
+    image_frontend: "sha256:9eb7ce4d1be6cb8af67ef5a4f2fca73f979cff3e460f56c157bdf8f50d98ca92"
+    image_frontend_created: "2026-05-11T14:31:54+07:00"
+    image_backend: "sha256:6d23ea39589aaa7584d12e40c1017dbeff3c78e78f52b11e89a2cb1f9123efa3"
+    image_backend_created: "2026-05-08T15:04:24+07:00"
+    reverse_proxy_conf: "/var/opt/MA/frontend_backup/nginx_old.conf"
+    proxy_target: "http://token-monitoring-bff-old:8080"
+    history_window_months: 3
+    data_source_table: "token_transactions_wai (raw)"
     ports:
       frontend: 4174
       backend_bff: 8015
+  target_v1_1_0:
+    remote_frontend_dir: "/var/opt/MA/frontend"
+    remote_backend_dir: "/var/opt/MA/backend"
+    container_frontend: "token-monitoring-web"
+    container_backend: "token-monitoring-bff"
+    image_frontend: "token-monitoring-web:1.1.0"
+    image_frontend_digest: "sha256:7d529d0c467ebcb97d2513c5bd559729c883e3889bc53577c36b9e2d438f2337"
+    image_frontend_created: "2026-11-18T12:05:40+07:00"
+    image_backend: "token-monitoring-bff:1.1.0"
+    image_backend_digest: "sha256:8c988372baba24eeb550003ea19c51b17e483503a6965f3d6395375e78f39510"
+    image_backend_created: "2026-11-18T12:04:53+07:00"
+    history_window_months: 12
+    data_source_table: "token_summary_monthly (summary)"
+    ports:
+      frontend: 4173
+      backend_bff: 8014
 
 dependencies:
   mongo_app_db:

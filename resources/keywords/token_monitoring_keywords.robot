@@ -187,3 +187,17 @@ Peningkatan Kinerja Tiga Lapisan Terbukti Sesuai Formula Dan Target
 
 Akurasi Kelengkapan Serta Keandalan Agregasi Terverifikasi Seratus Persen
     DB Audit Akurasi Kelengkapan Kesegaran Dan Keandalan Agregasi
+
+
+# ==============================================================================
+# TC-014 KEYWORDS (AUTHENTIC BUILD IDENTITY & DOCKER RUNTIME VERIFICATION)
+# ==============================================================================
+
+Metadata Docker Container SUT v1.0.0 Dan v1.1.0 Diperiksa Melalui SSH Host Staging
+    SSH Periksa Dan Validasi Metadata Container Docker Multi Versi
+
+Kontrak Respons API Dan Reverse Proxy Diuji Keandalan Isolasinya
+    API Dan Proxy Validasi Kontrak Respons Dan Isolasi Port
+
+Identitas Build Lama Dan Baru Terbukti Otentik Serta Perbedaan DOM Tervalidasi Nyata
+    UI Validasi Perbedaan DOM Antarmuka Tiga Bulan vs Dua Belas Bulan
