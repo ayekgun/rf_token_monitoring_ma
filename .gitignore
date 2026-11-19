@@ -7,3 +7,4 @@ __pycache__/
 .env
 automation/screenshots/
 *.png
+results/mutation_runs/

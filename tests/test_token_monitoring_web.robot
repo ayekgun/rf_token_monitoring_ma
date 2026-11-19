@@ -87,3 +87,11 @@ TC-012 Verifikasi Pemilihan Bulan Dengan Aktivitas Nol Menampilkan Metrik Nol Ta
     Given Pengguna Berada Di Tab Insight Pada Halaman Dashboard
     When Pengguna Memilih Bulan Tertua Desember 2025 Pada Dropdown Toolbar
     Then Metrik Penggunaan Dan Top Up Bernilai Nol Sementara Saldo Snapshot Dipertahankan
+
+
+TC-013 Komparasi Kinerja Tiga Lapisan Before After Dan Audit Akurasi Kelengkapan Agregasi
+    [Tags]    P1    TC-013    performance    benchmark    before_after    three_tier    audit
+    Given Pengukuran Kinerja Kueri Database Sebelum Dan Sesudah Pembaruan Telah Dilakukan
+    When Pengukuran Kinerja API Dan Waktu Muat Antarmuka Dashboard Terekam
+    Then Peningkatan Kinerja Tiga Lapisan Terbukti Sesuai Formula Dan Target
+    And Akurasi Kelengkapan Serta Keandalan Agregasi Terverifikasi Seratus Persen

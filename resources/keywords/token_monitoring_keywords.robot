@@ -170,3 +170,20 @@ Pengguna Memilih Bulan Tertua Desember 2025 Pada Dropdown Toolbar
 
 Metrik Penggunaan Dan Top Up Bernilai Nol Sementara Saldo Snapshot Dipertahankan
     DB Verifikasi Kondisi Nol Desember Dan Retensi Saldo Snapshot
+
+
+# ==============================================================================
+# TC-013 KEYWORDS (BEFORE AFTER PERFORMANCE BENCHMARK & AGGREGATION AUDIT)
+# ==============================================================================
+
+Pengukuran Kinerja Kueri Database Sebelum Dan Sesudah Pembaruan Telah Dilakukan
+    DB Benchmark Kinerja Kueri Database Sebelum Dan Sesudah Pembaruan
+
+Pengukuran Kinerja API Dan Waktu Muat Antarmuka Dashboard Terekam
+    UI Dan API Benchmark Waktu Respons Dan Muat Dashboard Berbeban Bersamaan
+
+Peningkatan Kinerja Tiga Lapisan Terbukti Sesuai Formula Dan Target
+    SYS Verifikasi Peningkatan Kinerja Tiga Lapisan Dan Akses Bersamaan
+
+Akurasi Kelengkapan Serta Keandalan Agregasi Terverifikasi Seratus Persen
+    DB Audit Akurasi Kelengkapan Kesegaran Dan Keandalan Agregasi
